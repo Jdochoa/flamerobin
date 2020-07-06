@@ -38,7 +38,7 @@ private:
     Relation* getCreateTriggerRelation(const wxString& sql);
     Relation* getAlterTriggerRelation(const wxString& sql);
     wxString getColumnsForObject(const wxString& sql,
-        const wxString& objectAlias, int cursorPos, bool sortColums);
+        const wxString& objectAlias, int cursorPos);
     wxString extractBlockAtPosition(const wxString& sql, int pos) const;
 
     template <class T>
@@ -49,7 +49,7 @@ public:
     IncompleteStatement(Database* db, const wxString& sql);
 
     // position is offset at which user typed the dot character
-    wxString getObjectColumns(const wxString& table, int position, bool sortColums);
+    wxString getObjectColumns(const wxString& table, int position);
 };
 
 #endif

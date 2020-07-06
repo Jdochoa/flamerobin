@@ -42,7 +42,6 @@
 #include "gui/FindDialog.h"
 #include "sql/SqlStatement.h"
 #include "statementHistory.h"
-#include "map"
 
 class CommandManager;
 class Database;
@@ -94,7 +93,6 @@ private:
         bool prepareOnly = false);
 
     std::vector<SqlStatement> executedStatementsM;
-    std::map<std::string, wxString> parameterSaveList;
     wxFileName filenameM;
     wxDateTime filenameModificationTimeM;
 

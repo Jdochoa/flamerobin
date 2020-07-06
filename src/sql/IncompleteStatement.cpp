@@ -48,7 +48,7 @@ IncompleteStatement::IncompleteStatement(Database *db, const wxString& sql)
 
 // position is offset at which user typed the dot character
 wxString IncompleteStatement::getObjectColumns(const wxString& table,
-    int position, bool sortColums)
+    int position)
 {
     MultiStatement ms(sqlM);
     int offset;
@@ -77,7 +77,7 @@ wxString IncompleteStatement::getObjectColumns(const wxString& table,
     while (stok.nextToken());
     position -= (offset + pstart);
     sql = sql.Mid(pstart, pend-pstart);
-    return getColumnsForObject(sql, table, position, sortColums);
+    return getColumnsForObject(sql, table, position);
 }
 
 typedef std::pair<wxString, wxString> IdAlias;
@@ -218,7 +218,7 @@ wxString IncompleteStatement::extractBlockAtPosition(const wxString& sql,
 }
 
 wxString IncompleteStatement::getColumnsForObject(const wxString& sql,
-    const wxString& objectSqlAlias, int cursorPos, bool sortColums)
+    const wxString& objectSqlAlias, int cursorPos)
 {
     Identifier idAlias;
     idAlias.setFromSql(objectSqlAlias);
@@ -340,8 +340,8 @@ wxString IncompleteStatement::getColumnsForObject(const wxString& sql,
                 cols.push_back((*c)->getQuotedName());
         }
     }
-    if (sortColums)
-        cols.sort();
+
+    cols.sort();
     wxString columns;
     for (std::list<wxString>::iterator i = cols.begin(); i != cols.end(); ++i)
         columns += (*i) + " ";
