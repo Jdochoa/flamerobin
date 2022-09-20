@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2004-2021 The FlameRobin Development Team
+  Copyright (c) 2004-2022 The FlameRobin Development Team
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -194,14 +194,7 @@ RestoreFrame::RestoreFrame(wxWindow* parent, DatabasePtr db)
 //! implementation details
 void RestoreFrame::createControls()
 {
-    panel_controls = new wxPanel(this, wxID_ANY, wxDefaultPosition,
-        wxDefaultSize, wxTAB_TRAVERSAL | wxCLIP_CHILDREN);
-    label_filename = new wxStaticText(panel_controls, wxID_ANY,
-        _("Backup file:"));
-    text_ctrl_filename = new FileTextControl(panel_controls,
-        ID_text_ctrl_filename, wxEmptyString);
-    button_browse = new wxButton(panel_controls, ID_button_browse, _("..."),
-        wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    BackupRestoreBaseFrame::createControls();
 
     checkbox_replace = new wxCheckBox(panel_controls, wxID_ANY,
         _("Replace existing database"));
@@ -219,18 +212,12 @@ void RestoreFrame::createControls()
     label_pagesize = new wxStaticText(panel_controls, wxID_ANY,
         _("Page size:"));
     const wxString pagesize_choices[] = {
-        _("Default"), "1024", "2048", "4096", "8192", "16384"
+        _("Default"), "1024", "2048", "4096", "8192", "16384", "32768"
     };
     choice_pagesize = new wxChoice(panel_controls, wxID_ANY,
         wxDefaultPosition, wxDefaultSize,
         sizeof(pagesize_choices) / sizeof(wxString), pagesize_choices);
 
-    checkbox_showlog = new wxCheckBox(panel_controls, ID_checkbox_showlog,
-        _("Show complete log"));
-    button_start = new wxButton(panel_controls, ID_button_start,
-        _("&Start Restore"));
-
-    text_ctrl_log = new LogTextControl(this, ID_text_ctrl_log);
 }
 
 void RestoreFrame::layoutControls()
