@@ -58,7 +58,6 @@
 
 #include <stdint.h>
 
-
 #if !defined(_)
 #define _(s)    s
 #endif
@@ -67,6 +66,10 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#ifdef HAVE_DECIMAL128
+#include <decimal/decimal>
+#endif
 
 namespace IBPP
 {
@@ -98,26 +101,64 @@ namespace IBPP
 
     //  SQL Data Types
     enum SDT {sdArray, sdBlob, sdDate, sdTime, sdTimestamp, sdString,
-        sdSmallint, sdInteger, sdLargeint, sdFloat, sdDouble, sdBoolean};
+        sdSmallint, sdInteger, sdLargeint, sdFloat, sdDouble, sdBoolean,
+        sdTimeTz, sdTimestampTz, sdInt128, sdDec16, sdDec34};
+
+    bool isIntegerNumber(SDT type);
+    bool isRationalNumber(SDT type);
 
     //  Array Data Types
     enum ADT {adDate, adTime, adTimestamp, adString,
         adBool, adInt16, adInt32, adInt64, adFloat, adDouble};
 
     // Database::Shutdown Modes
-    enum DSM {dsForce, dsDenyTrans, dsDenyAttach};
+    enum DSM {
+        dsVerbose = 0x1,
+        // Shutdhown  modes
+        dsCache = 0x100, 
+        dsForce = 0x200, 
+        dsDenyTrans = 0x400, 
+        dsDenyAttach = 0x800,
+        // database Modes
+        dsNormal =  0x1000,
+        dsSingle = 0x2000,
+        dsMulti = 0x4000,
+        dsFull = 0x8000
+    };
+
 
     // Service::StartBackup && Service::StartRestore Flags
     enum BRF {
-        brVerbose = 0x1,
         // Backup flags
-        brIgnoreChecksums = 0x100, brIgnoreLimbo = 0x200,
-        brMetadataOnly = 0x400, brNoGarbageCollect = 0x800,
-        brNonTransportable = 0x1000, brConvertExtTables = 0x2000,
+        brConvertExtTables      = 0x0000001,
+        brExpand                = 0x0000002,
+        brNoGarbageCollect      = 0x0000004,
+        brIgnoreChecksums       = 0x0000008, 
+        brIgnoreLimbo           = 0x0000010,
+        brNoDBTriggers          = 0x0000020, //FB2.5+
+        brOldDescriptions       = 0x0000040,
+        brNonTransportable      = 0x0000080,
+        brZip                   = 0x0000100, //FB4.0+
         // Restore flags
-        brReplace = 0x10000, brDeactivateIdx = 0x20000,
-        brNoShadow = 0x40000, brNoValidity = 0x80000,
-        brPerTableCommit = 0x100000, brUseAllSpace = 0x200000
+        brFix_Fss_Data          = 0x0000200, //FB2.0+
+        brFix_Fss_Metadata      = 0x0000400, //FB2.0+
+        brDeactivateIdx         = 0x0000800,
+        brNoShadow              = 0x0001000,
+        brNoValidity            = 0x0002000,
+        brPerTableCommit        = 0x0040000,
+        brUseAllSpace           = 0x0080000,
+        brDatabase_readonly     = 0x0100000,
+        brReplicaMode_none      = 0x0200000, //FB4.0+
+        brReplicaMode_readonly  = 0x0400000, //FB4.0+
+        brReplicaMode_readwrite = 0x0800000, //FB4.0+
+        brReplace               = 0x1000000,
+        // General flags
+        brMetadataOnly          = 0x2000000, //FB2.5+
+        brVerbose               = 0x4000000,
+        brstatistics_time       = 0x8000000, //FB2.5+
+        brstatistics_delta      = 0x10000000,//FB2.5+
+        brstatistics_pagereads  = 0x20000000,//FB2.5+
+        brstatistics_pagewrites = 0x40000000 //FB2.5+
     };
 
     // Service::Repair Flags
@@ -131,6 +172,79 @@ namespace IBPP
 
     // TransactionFactory Flags
     enum TFF {tfIgnoreLimbo = 0x1, tfAutoCommit = 0x2, tfNoAutoUndo = 0x4};
+
+    // int128 - FB4
+    #pragma pack(push, 1)
+
+    #ifndef HAVE_INT128
+    // NOTICE: could/should be replaced with int128_t if msvc supports this
+    typedef struct IBPP_INT128_T
+    {
+    private:
+        // _InOut_ dst
+        // _In_ toadd
+        // _Out_ overflow
+        void AddPart128(uint32_t* dst, const uint32_t& toadd, bool* overflow);
+        // _InOut_ T1
+        // _In_ T2
+        // _Out_ overflow
+        void Add128(IBPP_INT128_T* T1, const IBPP_INT128_T& T2, bool* overflow);
+public:
+        union DATA
+        {
+            struct
+            {
+                uint64_t lowPart;
+                int64_t highPart;
+            } s2;
+            struct
+            {
+                uint64_t lowPart;
+                uint64_t highPart;
+            } us2;
+            struct
+            {
+                uint32_t llPart;
+                uint32_t hlPart;
+                uint32_t lhPart;
+                uint32_t hhPart;
+            } s4;
+        } data;
+
+        // constructor
+        IBPP_INT128_T() {};
+        IBPP_INT128_T(const int64_t value);
+
+        IBPP_INT128_T operator-();
+        IBPP_INT128_T operator-(const IBPP_INT128_T& T2);
+        bool operator<(const IBPP_INT128_T& T2) const;
+    } ibpp_int128_t;
+    typedef struct IBPP_UINT128_T
+    {
+        uint64_t lowPart;
+        uint64_t highPart;
+    } ibpp_uint128_t;
+    #else
+    typedef __int128 ibpp_int128_t;
+    typedef __uint128_t ibpp_uint128_t;
+    #endif
+
+    #ifndef HAVE_DECIMAL128
+    typedef struct IBPP_DEC16_T
+    {
+        int64_t lowPart;
+    } ibpp_dec16_t;
+    typedef struct IBPP_DEC34_T
+    {
+        uint64_t lowPart;
+        uint64_t highPart;
+    } ibpp_dec34_t;
+    #else
+    typedef std::decimal::decimal64 ibpp_dec16_t;
+    typedef std::decimal::decimal128 ibpp_dec34_t;
+    #endif
+
+    #pragma pack(pop)
 
     /* IBPP never return any error codes. It throws exceptions.
      * On database engine reported errors, an IBPP::SQLException is thrown.
@@ -232,32 +346,46 @@ namespace IBPP
 
     class Time
     {
+	public:
+        enum TimezoneMode
+        {
+            // ISC_TIME / ISC_TIMESTAMP
+            tmNone,
+            // ISC_TIME_TZ / ISC_TIMESTAMP_TZ
+            tmTimezone,
+        };
+		/* no time zone -> utc = local */
+		const static int TZ_NONE     =  0;
     protected:
-        int mTime;  // The time, in ten-thousandths of seconds since midnight
+        // The time, in ten-thousandths of seconds since midnight - UTC and TZ
+        mutable int mTime;
+        mutable TimezoneMode mTimezoneMode;
+        // The timezone
+        int mTimezone;
 
+        void SetTimezone(int tz);
     public:
-        void Clear()    { mTime = 0; }
+        void Clear()    { mTime = 0; mTimezoneMode = tmNone; mTimezone = TZ_NONE; }
         void Now();
-        void SetTime(int hour, int minute, int second, int tenthousandths = 0);
-        void SetTime(int tm);
+        void SetTime(TimezoneMode tzMode, int hour, int minute, int second, int tenthousandths, int timezone);
+        void SetTime(TimezoneMode tzMode, int tm, int timezone);
         void GetTime(int& hour, int& minute, int& second) const;
         void GetTime(int& hour, int& minute, int& second, int& tenthousandths) const;
-        int GetTime() const { return mTime; }
+        int GetTime() const;
+        int GetTimezone() const { return mTimezone; }
         int Hours() const;
         int Minutes() const;
         int Seconds() const;
         int SubSeconds() const;     // Actually tenthousandths of seconds
         Time()          { Clear(); }
-        Time(int tm)    { SetTime(tm); }
-        Time(int hour, int minute, int second, int tenthousandths = 0);
+        Time(TimezoneMode tzMode, int tm, int timezone)    { SetTime(tzMode, tm, timezone); }
+        Time(TimezoneMode tzMode, int hour, int minute, int second, int tenthousandths, int timezone);
         Time(const Time&);                          // Copy Constructor
         Time& operator=(const Timestamp&);          // Timestamp Assignment operator
         Time& operator=(const Time&);               // Time Assignment operator
 
         bool operator==(const Time& rv) { return mTime == rv.GetTime(); }
         bool operator<(const Time& rv) { return mTime < rv.GetTime(); }
-
-        virtual ~Time() { }
     };
 
     /* Class Timestamp represent a date AND a time. It is usefull in
@@ -270,33 +398,33 @@ namespace IBPP
     public:
         void Clear()    { Date::Clear(); Time::Clear(); }
         void Today()    { Date::Today(); Time::Clear(); }
-        void Now()      { Date::Today(); Time::Now(); }
+        void Now(/*int timezone*/) { Date::Today(); Time::Now(/*timezone*/); }
 
         Timestamp()     { Clear(); }
 
         Timestamp(int y, int m, int d)
             { Date::SetDate(y, m, d); Time::Clear(); }
 
-        Timestamp(int y, int mo, int d, int h, int mi, int s, int t = 0)
-            { Date::SetDate(y, mo, d); Time::SetTime(h, mi, s, t); }
+        Timestamp(int y, int mo, int d, TimezoneMode tzMode, int h, int mi, int s, int t, int tz)
+            { Date::SetDate(y, mo, d); Time::SetTime(tzMode, h, mi, s, t, tz); }
 
         Timestamp(const Timestamp& rv)
-            : Date(rv.mDate), Time(rv.mTime) {} // Copy Constructor
+            : Date(rv.mDate), Time::Time(rv) {} // Copy Constructor
 
         Timestamp(const Date& rv)
-            { mDate = rv.GetDate(); mTime = 0; }
+            { mDate = rv.GetDate(); Time::Clear(); }
 
         Timestamp(const Time& rv)
-            { mDate = 0; mTime = rv.GetTime(); }
+            { mDate = 0; (Time)*this = rv; }
 
         Timestamp& operator=(const Timestamp& rv)   // Timestamp Assignment operator
-            { mDate = rv.mDate; mTime = rv.mTime; return *this; }
+            { mDate = rv.mDate; (Time)*this = (Time)rv; return *this; }
 
         Timestamp& operator=(const Date& rv)        // Date Assignment operator
             { mDate = rv.GetDate(); return *this; }
 
         Timestamp& operator=(const Time& rv)        // Time Assignment operator
-            { mTime = rv.GetTime(); return *this; }
+            { (Time)*this = (Time)rv; return *this; }
 
         bool operator==(const Timestamp& rv)
             { return (mDate == rv.GetDate()) && (mTime == rv.GetTime()); }
@@ -489,6 +617,7 @@ namespace IBPP
         virtual void Disconnect() = 0;
 
         virtual void GetVersion(std::string& version) = 0;
+        virtual bool versionIsHigherOrEqualTo(int versionMajor, int versionMinor) = 0;
 
         virtual void AddUser(const User&) = 0;
         virtual void GetUser(User&) = 0;
@@ -502,15 +631,26 @@ namespace IBPP
         virtual void SetReadOnly(const std::string& dbfile, bool) = 0;
         virtual void SetReserveSpace(const std::string& dbfile, bool) = 0;
 
-        virtual void Shutdown(const std::string& dbfile, DSM mode, int sectimeout) = 0;
-        virtual void Restart(const std::string& dbfile) = 0;
+        virtual void Shutdown(const std::string& dbfile, DSM flags, int sectimeout) = 0;
+        virtual void Restart(const std::string& dbfile, DSM flags) = 0;
         virtual void Sweep(const std::string& dbfile) = 0;
         virtual void Repair(const std::string& dbfile, RPF flags) = 0;
 
-        virtual void StartBackup(const std::string& dbfile,
-            const std::string& bkfile, BRF flags = BRF(0)) = 0;
-        virtual void StartRestore(const std::string& bkfile, const std::string& dbfile,
-            int pagesize = 0, BRF flags = BRF(0)) = 0;
+        virtual void StartBackup(
+            const std::string& dbfile,const std::string& bkfile, const std::string& outfile = "",
+            const int factor = 0, BRF flags = BRF(0),
+            const std::string& cryptName = "", const std::string& keyHolder="", const std::string& keyName="",
+            const std::string& skipData = "", const std::string& includeData = "", const int verboseInteval = 0,
+            const int parallelWorkers = 0
+        ) = 0;
+
+        virtual void StartRestore(
+            const std::string& bkfile, const std::string& dbfile, const std::string& outfile = "",
+            int pagesize = 0, int buffers = 0, BRF flags = BRF(0),
+            const std::string & cryptName = "", const std::string & keyHolder = "", const std::string & keyName = "",
+            const std::string & skipData = "", const std::string & includeData = "", const int verboseInteval = 0,
+            const int parallelWorkers = 0
+        ) = 0;
 
         virtual const char* WaitMsg() = 0;  // With reporting (does not block)
         virtual void Wait() = 0;            // Without reporting (does block)
@@ -621,8 +761,11 @@ namespace IBPP
         virtual void Set(int, int16_t) = 0;
         virtual void Set(int, int32_t) = 0;
         virtual void Set(int, int64_t) = 0;
+        virtual void Set(int, IBPP::ibpp_int128_t) = 0;
         virtual void Set(int, float) = 0;
         virtual void Set(int, double) = 0;
+        virtual void Set(int, IBPP::ibpp_dec16_t) = 0;
+        virtual void Set(int, IBPP::ibpp_dec34_t) = 0;
         virtual void Set(int, const Timestamp&) = 0;
         virtual void Set(int, const Date&) = 0;
         virtual void Set(int, const Time&) = 0;
@@ -637,8 +780,11 @@ namespace IBPP
         virtual bool Get(int, int16_t&) = 0;
         virtual bool Get(int, int32_t&) = 0;
         virtual bool Get(int, int64_t&) = 0;
+        virtual bool Get(int, IBPP::ibpp_int128_t&) = 0;
         virtual bool Get(int, float&) = 0;
         virtual bool Get(int, double&) = 0;
+        virtual bool Get(int, IBPP::ibpp_dec16_t&) = 0;
+        virtual bool Get(int, IBPP::ibpp_dec34_t&) = 0;
         virtual bool Get(int, Timestamp&) = 0;
         virtual bool Get(int, Date&) = 0;
         virtual bool Get(int, Time&) = 0;
@@ -754,8 +900,11 @@ namespace IBPP
         virtual bool Get(int, int16_t&) = 0;
         virtual bool Get(int, int32_t&) = 0;
         virtual bool Get(int, int64_t&) = 0;
+        virtual bool Get(int, IBPP::ibpp_int128_t&) = 0;
         virtual bool Get(int, float&) = 0;
         virtual bool Get(int, double&) = 0;
+        virtual bool Get(int, IBPP::ibpp_dec16_t&) = 0;
+        virtual bool Get(int, IBPP::ibpp_dec34_t&) = 0;
         virtual bool Get(int, Timestamp& value) = 0;
         virtual bool Get(int, Date& value) = 0;
         virtual bool Get(int, Time& value) = 0;
@@ -864,17 +1013,20 @@ namespace IBPP
     //  }
 
     Service ServiceFactory(const std::string& ServerName,
-        const std::string& UserName, const std::string& UserPassword);
+        const std::string& UserName, const std::string& UserPassword, 
+        const std::string& RoleName, const std::string& CharSet,
+        const std::string& FBClient = "");
 
     Database DatabaseFactory(const std::string& ServerName,
         const std::string& DatabaseName, const std::string& UserName,
             const std::string& UserPassword, const std::string& RoleName,
-                const std::string& CharSet, const std::string& CreateParams);
+                const std::string& CharSet, const std::string& CreateParams,
+                    const std::string& FBClient = "");
 
     inline Database DatabaseFactory(const std::string& ServerName,
         const std::string& DatabaseName, const std::string& UserName,
-            const std::string& UserPassword)
-        { return DatabaseFactory(ServerName, DatabaseName, UserName, UserPassword, "", "", ""); }
+            const std::string& UserPassword, const std::string& FBClient = "")
+        { return DatabaseFactory(ServerName, DatabaseName, UserName, UserPassword, "", "", "", FBClient); }
 
     Transaction TransactionFactory(Database db, TAM am = amWrite,
         TIL il = ilConcurrency, TLR lr = lrWait, TFF flags = TFF(0));
