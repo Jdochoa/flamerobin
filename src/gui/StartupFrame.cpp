@@ -47,127 +47,6 @@
 #include "metadata/database.h"
 #include "metadata/server.h"
 
-// worker thread class to perform database Start
-class StartupThread: public wxThread {
-public:
-    StartupThread(StartupFrame* frame, wxString server, wxString username,
-        wxString password, wxString dbfilename,  IBPP::DSM flags);
-
-    virtual void* Entry();
-    virtual void OnExit();
-private:
-    StartupFrame* frameM;
-    wxString serverM;
-    wxString usernameM;
-    wxString passwordM;
-    wxString dbfileM;
-    IBPP::DSM dsmM;
-    void logError(wxString& msg);
-    void logImportant(wxString& msg);
-    void logProgress(wxString& msg);
-};
-
-StartupThread::StartupThread(StartupFrame* frame, wxString server,
-        wxString username, wxString password, wxString dbfilename,
-        IBPP::DSM flags)
-    : wxThread()
-{
-    frameM = frame;
-    serverM = server;
-    usernameM = username;
-    passwordM = password;
-    dbfileM = dbfilename;
-    // always use verbose flag
-    dsmM = (IBPP::DSM)((int)flags | (int)IBPP::brVerbose);
-}
-
-void* StartupThread::Entry()
-{
-    wxDateTime now;
-    wxString msg;
-
-    try
-    {
-        msg.Printf(_("Connecting to server %s..."), serverM.c_str());
-        logImportant(msg);
-        IBPP::Service svc = IBPP::ServiceFactory(wx2std(serverM),
-            wx2std(usernameM), wx2std(passwordM));
-        svc->Connect();
-
-        now = wxDateTime::Now();
-        msg.Printf(_("Database startup started %s"), now.FormatTime().c_str());
-        logImportant(msg);
-        svc->Restart(wx2std(dbfileM),  dsmM);
-        while (true)
-        {
-            if (TestDestroy())
-            {
-                now = wxDateTime::Now();
-                msg.Printf(_("Database startup canceled %s"),
-                    now.FormatTime().c_str());
-                logImportant(msg);
-                break;
-            }
-            const char* c = svc->WaitMsg();
-            if (c == 0)
-            {
-                now = wxDateTime::Now();
-                msg.Printf(_("Database startup finished %s"),
-                    now.FormatTime().c_str());
-                logImportant(msg);
-                break;
-            }
-            msg = c;
-            logProgress(msg);
-        }
-        svc->Disconnect();
-    }
-    catch (IBPP::Exception& e)
-    {
-        now = wxDateTime::Now();
-        msg.Printf(_("Database startup canceled %s due to IBPP exception:\n\n"),
-            now.FormatTime().c_str());
-        msg += e.what();
-        logError(msg);
-    }
-    catch (...)
-    {
-        now = wxDateTime::Now();
-        msg.Printf(_("Database startup canceled %s due to exception"),
-            now.FormatTime().c_str());
-        logError(msg);
-    }
-    return 0;
-}
-
-void StartupThread::OnExit()
-{
-    if (frameM != 0)
-    {
-        wxCommandEvent event(wxEVT_COMMAND_MENU_SELECTED,
-            ShutdownStartupBaseFrame::ID_thread_finished);
-        wxPostEvent(frameM, event);
-    }
-}
-
-void StartupThread::logError(wxString& msg)
-{
-    if (frameM != 0)
-        frameM->threadOutputMsg(msg, ShutdownStartupBaseFrame::error_message);
-}
-
-void StartupThread::logImportant(wxString& msg)
-{
-    if (frameM != 0)
-        frameM->threadOutputMsg(msg, ShutdownStartupBaseFrame::important_message);
-}
-
-void StartupThread::logProgress(wxString& msg)
-{
-    if (frameM != 0)
-        frameM->threadOutputMsg(msg, ShutdownStartupBaseFrame::progress_message);
-}
-
 StartupFrame::StartupFrame(wxWindow* parent, DatabasePtr db)
     : ShutdownStartupBaseFrame(parent, db)
 {
@@ -195,11 +74,12 @@ void StartupFrame::createControls()
 void StartupFrame::layoutControls()
 {
     
+    ShutdownStartupBaseFrame::layoutControls();
 
-    wxBoxSizer* sizerButtons = new wxBoxSizer(wxHORIZONTAL);
+    /*wxBoxSizer* sizerButtons = new wxBoxSizer(wxHORIZONTAL);
     sizerButtons->Add(checkbox_showlog, 0, wxALIGN_CENTER_VERTICAL);
     sizerButtons->Add(0, 0, 1, wxEXPAND);
-    sizerButtons->Add(button_start);
+    sizerButtons->Add(button_start);*/
 
     wxBoxSizer* sizerPanelV = new wxBoxSizer(wxVERTICAL);
     sizerPanelV->Add(0, styleguide().getFrameMargin(wxTOP));
@@ -272,7 +152,7 @@ END_EVENT_TABLE()
 
 void StartupFrame::OnStartButtonClick(wxCommandEvent& WXUNUSED(event))
 {
-    verboseMsgsM = checkbox_showlog->IsChecked();
+    verboseMsgsM = true;
     clearLog();
 
     DatabasePtr database = getDatabase();
@@ -286,6 +166,10 @@ void StartupFrame::OnStartButtonClick(wxCommandEvent& WXUNUSED(event))
     wxString password;
     if (!getConnectionCredentials(this, database, username, password))
         return;
+    wxString rolename;
+    wxString charset;
+    rolename = database->getRole();
+    charset = database->getConnectionCharset();
 
     int flags = (int)IBPP::dsVerbose; 
 
@@ -294,9 +178,22 @@ void StartupFrame::OnStartButtonClick(wxCommandEvent& WXUNUSED(event))
 
 
     startThread(std::make_unique<StartupThread>(this,
-        server->getConnectionString(), username, password,
+        server->getConnectionString(), username, password, rolename, charset,
         database->getPath(), (IBPP::DSM)flags));
 
     updateControls();
 }
 
+StartupThread::StartupThread(StartupFrame* frame, 
+    wxString server, wxString username, wxString password, 
+    wxString rolename, wxString charset, wxString 
+    dbfilename, IBPP::DSM flags)
+    :ShutdownStartupThread(frame, server, username, password,
+        rolename, charset, dbfilename, flags)
+{
+}
+
+void StartupThread::Execute(IBPP::Service svc)
+{
+    svc->Restart(wx2std(dbfileM), dsmM);
+}

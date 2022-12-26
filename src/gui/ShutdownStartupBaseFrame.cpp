@@ -43,7 +43,7 @@
 
 ShutdownStartupBaseFrame::ShutdownStartupBaseFrame(wxWindow* parent,
         DatabasePtr db)
-    : ThreadBaseFrame(parent, db)
+    : ServiceBaseFrame(parent, db)
 {
 
     verboseMsgsM = true;
@@ -62,17 +62,12 @@ void ShutdownStartupBaseFrame::cancelShutdownStartup()
 bool ShutdownStartupBaseFrame::Destroy()
 {
     cancelShutdownStartup();
-    return ThreadBaseFrame::Destroy();
+    return ServiceBaseFrame::Destroy();
 }
 
 void ShutdownStartupBaseFrame::doReadConfigSettings(const wxString& prefix)
 {
     BaseFrame::doReadConfigSettings(prefix);
-
-    bool verbose = true;
-    config().getValue(prefix + Config::pathSeparator + "verboselog",
-        verbose);
-    checkbox_showlog->SetValue(verbose);
 
     wxString bkfile;
     config().getValue(prefix + Config::pathSeparator + "state",
@@ -84,8 +79,6 @@ void ShutdownStartupBaseFrame::doReadConfigSettings(const wxString& prefix)
 void ShutdownStartupBaseFrame::doWriteConfigSettings(const wxString& prefix) const
 {
     BaseFrame::doWriteConfigSettings(prefix);
-    config().setValue(prefix + Config::pathSeparator + "verboselog",
-        checkbox_showlog->GetValue());
     //config().setValue(prefix + Config::pathSeparator + "state",
     //    text_ctrl_filename->GetValue());
 }
@@ -100,7 +93,7 @@ const wxString ShutdownStartupBaseFrame::getStorageName() const
 
 void ShutdownStartupBaseFrame::createControls()
 {
-    ThreadBaseFrame::createControls();
+    ServiceBaseFrame::createControls();
     
     wxArrayString choices;
     choices.Add("normal");
@@ -115,6 +108,7 @@ void ShutdownStartupBaseFrame::createControls()
 
 void ShutdownStartupBaseFrame::layoutControls()
 {
+    ServiceBaseFrame::layoutControls();
 }
 
 void ShutdownStartupBaseFrame::subjectRemoved(Subject* subject)
@@ -147,7 +141,6 @@ IBPP::DSM ShutdownStartupBaseFrame::getDatabaseMode()
         case 2 :
             return IBPP::dsMulti;
             break;
-
         case 3 :
             return IBPP::dsFull;
             break;
@@ -158,7 +151,7 @@ IBPP::DSM ShutdownStartupBaseFrame::getDatabaseMode()
 
 void ShutdownStartupBaseFrame::updateControls()
 {
-    ThreadBaseFrame::updateControls();
+    ServiceBaseFrame::updateControls();
 
     bool running = getThreadRunning();
 
@@ -167,8 +160,7 @@ void ShutdownStartupBaseFrame::updateControls()
 }
 
 //! event handlers
-BEGIN_EVENT_TABLE(ShutdownStartupBaseFrame, BaseFrame)
-    EVT_CHECKBOX(ShutdownStartupBaseFrame::ID_checkbox_showlog, ShutdownStartupBaseFrame::OnVerboseLogChange)
+BEGIN_EVENT_TABLE(ShutdownStartupBaseFrame, ServiceBaseFrame)
     EVT_MENU(ShutdownStartupBaseFrame::ID_thread_finished, ShutdownStartupBaseFrame::OnThreadFinished)
     EVT_MENU(ShutdownStartupBaseFrame::ID_thread_output, ShutdownStartupBaseFrame::OnThreadOutput)
 END_EVENT_TABLE()
@@ -177,7 +169,7 @@ END_EVENT_TABLE()
 void ShutdownStartupBaseFrame::OnVerboseLogChange(wxCommandEvent& WXUNUSED(event))
 {
     wxBusyCursor wait;
-    verboseMsgsM = checkbox_showlog->IsChecked();
+    verboseMsgsM = true;
 
     wxWindowUpdateLocker freeze(text_ctrl_log);
 
@@ -185,3 +177,11 @@ void ShutdownStartupBaseFrame::OnVerboseLogChange(wxCommandEvent& WXUNUSED(event
     updateMessages(0, msgsM.GetCount());
 }
 
+ShutdownStartupThread::ShutdownStartupThread(ShutdownStartupBaseFrame* frame, 
+    wxString server, wxString username, wxString password, wxString rolename, 
+    wxString charset, wxString dbfilename, IBPP::DSM flags)
+    :dbfileM(dbfilename), 
+    ServiceThread(frame, server, username, password, rolename, charset)
+{
+    dsmM = (IBPP::DSM)((int)flags | (int)IBPP::brVerbose);
+}

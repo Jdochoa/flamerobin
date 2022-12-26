@@ -98,6 +98,7 @@ FLAMEROBIN_OBJECTS =  \
 	flamerobin_FieldPropertiesDialog.o \
 	flamerobin_FindDialog.o \
 	flamerobin_FRLayoutConfig.o \
+	flamerobin_FRStyle.o \
 	flamerobin_GUIURIHandlerHelper.o \
 	flamerobin_HtmlHeaderMetadataItemVisitor.o \
 	flamerobin_HtmlTemplateProcessor.o \
@@ -113,13 +114,13 @@ FLAMEROBIN_OBJECTS =  \
 	flamerobin_ReorderFieldsDialog.o \
 	flamerobin_RestoreFrame.o \
 	flamerobin_ServerRegistrationDialog.o \
+	flamerobin_ServiceBaseFrame.o \
 	flamerobin_ShutdownStartupBaseFrame.o \
 	flamerobin_ShutdownFrame.o \
 	flamerobin_SimpleHtmlFrame.o \
 	flamerobin_StatementHistoryDialog.o \
 	flamerobin_StartupFrame.o \
 	flamerobin_StyleGuide.o \
-	flamerobin_ThreadBaseFrame.o \
 	flamerobin_UserDialog.o \
 	flamerobin_UsernamePasswordDialog.o \
 	flamerobin_logger.o \
@@ -377,6 +378,9 @@ flamerobin_FindDialog.o: ./src/gui/FindDialog.cpp
 flamerobin_FRLayoutConfig.o: ./src/gui/FRLayoutConfig.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
+flamerobin_FRStyle.o: ./${SOURCEDIR}/gui/FRStyle.cpp
+	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
+
 flamerobin_GUIURIHandlerHelper.o: ./src/gui/GUIURIHandlerHelper.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
@@ -422,6 +426,9 @@ flamerobin_RestoreFrame.o: ./src/gui/RestoreFrame.cpp
 flamerobin_ServerRegistrationDialog.o: ./src/gui/ServerRegistrationDialog.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
+flamerobin_ServiceBaseFrame.o: ./${SOURCEDIR}/gui/ServiceBaseFrame.cpp
+	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
+
 flamerobin_ShutdownStartupBaseFrame.o: ./${SOURCEDIR}/gui/ShutdownStartupBaseFrame.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
@@ -438,9 +445,6 @@ flamerobin_StartupFrame.o: ./${SOURCEDIR}/gui/StartupFrame.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
 flamerobin_StyleGuide.o: ./src/gui/StyleGuide.cpp
-	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
-
-flamerobin_ThreadBaseFrame.o: ./${SOURCEDIR}/gui/ThreadBaseFrame.cpp
 	$(CXX) -c -o $@ $(FLAMEROBIN_CXXFLAGS) $(CPPDEPS) $<
 
 flamerobin_UserDialog.o: ./src/gui/UserDialog.cpp

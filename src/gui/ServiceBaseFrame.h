@@ -22,8 +22,8 @@
 */
 
 
-#ifndef THREADBASEFRAME_H
-#define THREADBASEFRAME_H
+#ifndef SERVICEBASEFRAME_H
+#define SERVICEBASEFRAME_H
 
 #include <wx/wx.h>
 #include <wx/thread.h>
@@ -38,8 +38,9 @@
 class FileTextControl;
 class LogTextControl;
 
-class ThreadBaseFrame: public BaseFrame, public Observer
+class ServiceBaseFrame: public BaseFrame, public Observer
 {
+    friend class ServiceThread;
 public:
     enum MsgKind {
         progress_message,
@@ -56,9 +57,8 @@ public:
     virtual bool Destroy();
 protected:
     enum {
-        ID_text_ctrl_log = 104,
-        ID_checkbox_showlog,
-        ID_button_start,
+        ID_text_ctrl_log = 201,
+        ID_button_start
     };
 
     wxArrayString msgsM;
@@ -82,7 +82,8 @@ protected:
     void addThreadMsg(const wxString msg, bool& notificationNeeded);
     void updateMessages(size_t firstmsg, size_t lastmsg);
 
-    ThreadBaseFrame(wxWindow* parent, DatabasePtr db);
+
+    ServiceBaseFrame(wxWindow* parent, DatabasePtr db);
 private:
     DatabaseWeakPtr databaseM;
     wxThread* threadM;
@@ -97,11 +98,15 @@ private:
 
 protected:
     wxPanel* panel_controls;
-    wxCheckBox* checkbox_showlog;
+
+
     wxButton* button_start;
 
     LogTextControl* text_ctrl_log;
-    
+
+    wxBoxSizer* sizerButtons;
+
+
     // event handling
     void OnThreadOutput(wxCommandEvent& event);
     void OnSettingsChange(wxCommandEvent& event);
@@ -112,4 +117,30 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-#endif // THREADBASEFRAME_H
+
+class ServiceThread : public wxThread {
+public:
+    ServiceThread(ServiceBaseFrame* frame, wxString server,
+        wxString username, wxString password, wxString rolename, 
+        wxString charset
+    );
+
+    virtual void* Entry();
+    virtual void OnExit();
+
+protected:
+        virtual void Execute(IBPP::Service ) = 0;
+private:
+    ServiceBaseFrame* frameM;
+    wxString serverM;
+    wxString usernameM;
+    wxString passwordM;
+    wxString rolenameM;
+    wxString charsetM;
+
+    void logError(wxString& msg);
+    void logImportant(wxString& msg);
+    void logProgress(wxString& msg);
+};
+
+#endif // SERVICEBASEFRAME_H
