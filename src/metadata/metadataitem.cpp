@@ -188,6 +188,15 @@ void MetadataItem::resetPendingLoadData()
         childrenLoadedM = lsNotLoaded;
 }
 
+IBPP::Statement& MetadataItem::executeStatment(const std::string aSql)
+{
+    DatabasePtr db = getDatabase();
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+
+    return loader->getStatement(aSql);
+}
+
 void MetadataItem::ensurePropertiesLoaded()
 {
     if (!propertiesLoaded())

@@ -88,12 +88,16 @@ void Domain::loadProperties()
 {
     setPropertiesLoaded(false);
 
-    DatabasePtr db = getDatabase();
+    /*DatabasePtr db = getDatabase();
     MetadataLoader* loader = db->getMetadataLoader();
     MetadataLoaderTransaction tr(loader);
     wxMBConv* converter = db->getCharsetConverter();
 
-    IBPP::Statement& st1 = loader->getStatement(getLoadStatement(false));
+    IBPP::Statement& st1 = loader->getStatement(getLoadStatement(false));*/
+
+    wxMBConv* converter = getDatabase()->getCharsetConverter();
+
+    IBPP::Statement& st1 = executeStatment(getLoadStatement(false));
     st1->Set(1, wx2std("RDB$FIELD_TYPE", converter)); 
     st1->Set(2, wx2std(getName_(), converter));
     st1->Execute();

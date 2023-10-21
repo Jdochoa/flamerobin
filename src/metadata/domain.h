@@ -44,6 +44,7 @@ private:
     void loadProperties(IBPP::Statement& statement, wxMBConv* converter);
     friend class DomainCollectionBase;
     friend class Domains;
+    friend class FRIDomainCompare;
 protected:
     virtual void loadProperties();
 public:

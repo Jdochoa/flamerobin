@@ -33,6 +33,7 @@
 #include "core/ObjectWithHandle.h"
 #include "core/ProcessableObject.h"
 #include "core/Subject.h"
+#include "engine/MetadataLoader.h"
 #include "metadata/MetadataClasses.h"
 #include "sql/Identifier.h"
 
@@ -101,6 +102,8 @@ protected:
     virtual void unlockChildren();
 
     void resetPendingLoadData();
+
+    IBPP::Statement& executeStatment(const std::string aSql);
 
 public:
     MetadataItem();
