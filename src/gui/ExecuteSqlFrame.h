@@ -58,6 +58,7 @@ public:
     void markText(int start, int end);
     void setChars(bool firebirdIdentifierOnly);
     void setFont();
+    void setupStyles();
 
     bool hasSelection();
 
@@ -77,12 +78,14 @@ public:
     bool loadSqlFile(const wxString& filename);
     bool setSql(wxString sql);
 
+
     void executeAllStatements(bool autoExecute = false);
 
     virtual bool Show(bool show = TRUE);
 
     Database* getDatabase() const;
 private:
+    void setupStyles();
 
     virtual bool doCanClose();
     virtual void doBeforeDestroy();
@@ -107,9 +110,12 @@ private:
     typedef enum { ttNormal, ttSql, ttError } TextType;
     void log(wxString s, TextType type = ttNormal);     // write messages to textbox
     void clearLogBeforeExecution();
+    void prepareVolatileDatabase(wxString server = "", wxString port = "3050", wxString db = "", wxString user = "", wxString password = "", wxString role = "", wxString charset = "NONE");
 
     void splitScreen();
     Database* databaseM;
+    DatabasePtr databasePtrM;
+    ServerPtr serverPtrM;
 
     StatementHistory::Position historyPositionM;
     wxString localBuffer;
@@ -121,6 +127,7 @@ private:
     IBPP::TIL transactionIsolationLevelM;
     IBPP::TLR transactionLockResolutionM;
     IBPP::TAM transactionAccessModeM;
+    bool showStatisticsM;
     void inTransaction(bool started);       // changes controls (enable/disable)
     bool commitTransaction();
     bool rollbackTransaction();
@@ -199,7 +206,6 @@ private:
     void OnMenuUpdateSelectView(wxUpdateUIEvent& event);
     void OnMenuSplitView(wxCommandEvent& event);
     void OnMenuUpdateSplitView(wxUpdateUIEvent& event);
-    void OnMenuSetEditorFont(wxCommandEvent& event);
     void OnMenuToggleWrap(wxCommandEvent& event);
 
     void OnMenuHistoryNext(wxCommandEvent& event);
@@ -210,6 +216,8 @@ private:
 
     void OnMenuExecute(wxCommandEvent& event);
     void OnMenuShowPlan(wxCommandEvent& event);
+    void OnMenuShowStatistics(wxCommandEvent& event);
+    void OnMenuUpdateShowStatistics(wxUpdateUIEvent& event);
     void OnMenuExecuteSelection(wxCommandEvent& event);
     void OnMenuExecuteFromCursor(wxCommandEvent& event);
     void OnMenuCommit(wxCommandEvent& event);
@@ -238,8 +246,6 @@ private:
     void OnMenuGridCopyAsUpdateInsert(wxCommandEvent& event);
     void OnMenuGridSaveAsHtml(wxCommandEvent& event);
     void OnMenuGridSaveAsCsv(wxCommandEvent& event);
-    void OnMenuGridGridHeaderFont(wxCommandEvent& event);
-    void OnMenuGridGridCellFont(wxCommandEvent& event);
     void OnMenuGridFetchAll(wxCommandEvent& event);
     void OnMenuGridCancelFetchAll(wxCommandEvent& event);
     void OnMenuUpdateGridHasSelection(wxUpdateUIEvent& event);

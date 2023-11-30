@@ -38,11 +38,17 @@
                 </setting>
             </enables>
         </setting>
-                <setting type="file">
-                    <caption>Library file name:</caption>
+				<setting type="file" platform="win" arch="x86">
+                    <caption>Library x86 file name:</caption>
                     <description>FbClient.dll or gds32.dll </description>
-                    <key>LibraryFile</key>
+                    <key>x86LibraryFile</key>
                 </setting>
+				<setting type="file" platform="win" arch="x64">
+                    <caption>Library x64 file name:</caption>
+                    <description>FbClient.dll or gds32.dll </description>
+                    <key>x64LibraryFile</key>
+                </setting>
+				
 		
         <!--
         <setting type="checkbox">
@@ -87,6 +93,12 @@
             <key>ShowSystemIndices</key>
             <default>1</default>
         </setting>
+        <!--<setting type="checkbox">
+            <caption>Show system characterset in tree</caption>
+            <description>If checked the system CharacterSet will be shown in the tree by default (can be overridden per database)</description>
+            <key>ShowSystemCharacterSet</key>
+            <default>0</default>
+        </setting> -->
         <setting type="checkbox">
             <caption>Show system domains in tree</caption>
             <description>If checked the system domains will be shown in the tree by default (can be overridden per database)</description>
@@ -390,29 +402,13 @@
             <description>SQL Style Editor </description>
             <image>0</image>
 			<setting type="themecombobox">
-				<caption>Select theme:</caption>
-                <description>Select the file with the style</description>
+				<caption>	</caption>
+                <description>Select the file with the primary style</description>
                 <key>StyleTheme</key>
-				<default>Default</default>
+				<default>styles</default>
 				<aligngroup>1</aligngroup>
                 <file>StyleTheme</file>
             </setting>
-			<!--
-			<setting type="colour">
-				<caption>Foreground Colour:</caption>
-                <description>Foregound Colour with the style</description>
-                <key>ForegroundColour</key>
-				<default>BDAE9D</default>
-				<aligngroup>1</aligngroup>
-            </setting>
-			<setting type="colour">
-				<caption>Background Colour:</caption>
-                <description>Background Colour with the style</description>
-                <key>BackgroundColour</key>
-				<default>2A211C</default>
-				<aligngroup>2</aligngroup>
-            </setting>
-			-->
 		</node>
     </node>
     <node>
@@ -453,16 +449,6 @@
             <option>
                 <caption>Append time zone name.</caption>
             </option>
-        </setting>
-        <setting type="font">
-            <caption>Grid header font:</caption>
-            <key>DataGridHeaderFont</key>
-            <aligngroup>1</aligngroup>
-        </setting>
-        <setting type="font">
-            <caption>Grid cell font:</caption>
-            <key>DataGridFont</key>
-            <aligngroup>1</aligngroup>
         </setting>
         <setting type="checkbox">
             <caption>Re-format float and double precision numbers</caption>

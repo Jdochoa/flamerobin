@@ -32,7 +32,6 @@ enum {
     View_Data,
     View_SplitView,
     View_Wrap_long_lines,
-    View_Set_editor_font,
     Find_Selected_Object,
 
     // SQL History
@@ -42,6 +41,7 @@ enum {
     // SQL Query
     Query_Execute,
     Query_Show_plan,
+    Query_Show_Statistics,
     Query_Execute_selection,
     Query_Execute_from_cursor,
     Query_Commit,
@@ -71,8 +71,6 @@ enum {
     DataGrid_Copy_as_upins,
     DataGrid_Save_as_html,
     DataGrid_Save_as_csv,
-    DataGrid_Set_header_font,
-    DataGrid_Set_cell_font,
     DataGrid_Log_changes,
 
     Menu_RegisterServer = 600,
@@ -85,6 +83,7 @@ enum {
     Menu_URLBugReport,
     Menu_NewObject,
     Menu_DatabaseRegistrationInfo,
+    Menu_NewVolatileSQLEditor,
     Menu_RegisterDatabase,
     Menu_CreateDatabase,
     Menu_ManageUsers,
@@ -134,6 +133,7 @@ enum {
         Menu_ToggleDisconnected,
 
         // create new ... (stuff)
+        Menu_CreateCollation,
         Menu_CreateDBTrigger,
         Menu_CreateDDLTrigger,
         Menu_CreateDMLTrigger,

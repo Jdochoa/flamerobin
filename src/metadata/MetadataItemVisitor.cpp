@@ -41,6 +41,32 @@ MetadataItemVisitor::~MetadataItemVisitor()
 {
 }
 
+void MetadataItemVisitor::visitCharacterSet(CharacterSet&)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visitCharacterSets(CharacterSets&)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visitCollation(Collation&)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visitSysCollations(SysCollations&)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visitCollations(Collations&)
+{
+    defaultAction();
+}
+
+
 void MetadataItemVisitor::visitColumn(Column&)
 {
     defaultAction();
@@ -96,12 +122,12 @@ void MetadataItemVisitor::visitUDFs(UDFs&)
     defaultAction();
 }
 
-void MetadataItemVisitor::visitUser(User& )
+void MetadataItemVisitor::visitUser(User&)
 {
 	defaultAction();
 }
 
-void MetadataItemVisitor::visitUsers(Users& )
+void MetadataItemVisitor::visitUsers(Users&)
 {
     defaultAction();
 }
@@ -247,19 +273,19 @@ void MetadataItemVisitor::visitTriggers(Triggers&)
     defaultAction();
 }
 
-void MetadataItemVisitor::visitDBTrigger(DBTrigger&)
+void MetadataItemVisitor::visitDBTrigger(DBTrigger& trigger)
 {
-    defaultAction();
+    visitTrigger(*(Trigger*)&trigger);
 }
 
-void MetadataItemVisitor::visitDDLTrigger(DDLTrigger&)
+void MetadataItemVisitor::visitDDLTrigger(DDLTrigger& trigger)
 {
-    defaultAction();
+    visitTrigger(*(Trigger*)&trigger);
 }
 
-void MetadataItemVisitor::visitDMLTrigger(DMLTrigger&)
+void MetadataItemVisitor::visitDMLTrigger(DMLTrigger& trigger)
 {
-    defaultAction();
+    visitTrigger(*(Trigger*)&trigger);
 }
 
 void MetadataItemVisitor::visitDMLTriggers(DMLTriggers&)

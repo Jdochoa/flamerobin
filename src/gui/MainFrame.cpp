@@ -190,6 +190,7 @@ void MainFrame::buildMainMenu()
     menuBarM = new wxMenuBar();
 
     databaseMenuM = new wxMenu();
+    databaseMenuM->Append(Cmds::Menu_NewVolatileSQLEditor, _("Open new Volatile &SQL Editor..."));
     databaseMenuM->Append(Cmds::Menu_RegisterDatabase, _("R&egister existing database..."));
     databaseMenuM->Append(Cmds::Menu_CreateDatabase, _("Create &new database..."));
     databaseMenuM->Append(Cmds::Menu_RestoreIntoNew, _("Restore bac&kup into new database..."));
@@ -226,6 +227,7 @@ void MainFrame::buildMainMenu()
 
     objectMenuM = new wxMenu();
     wxMenu* newMenu = new wxMenu();
+    newMenu->Append(Cmds::Menu_CreateCollation, _("&Collation"));
     newMenu->Append(Cmds::Menu_CreateDBTrigger, _("D&B Trigger"));
     newMenu->Append(Cmds::Menu_CreateDDLTrigger, _("DD&L Trigger"));
     newMenu->Append(Cmds::Menu_CreateDMLTrigger, _("DML Tr&igger"));
@@ -233,7 +235,7 @@ void MainFrame::buildMainMenu()
     newMenu->Append(Cmds::Menu_CreateException, _("&Exception"));
     newMenu->Append(Cmds::Menu_CreateFunction, _("&Function"));
     newMenu->Append(Cmds::Menu_CreateGenerator, _("&Generator"));
-    newMenu->Append(Cmds::Menu_CreateGTTTable, _("Global Temporary"));
+    newMenu->Append(Cmds::Menu_CreateGTTTable, _("Global &Temporary"));
     newMenu->Append(Cmds::Menu_CreateIndex, _("&Index"));
     newMenu->Append(Cmds::Menu_CreatePackage, _("P&ackage"));
     newMenu->Append(Cmds::Menu_CreateProcedure, _("&Procedure"));
@@ -253,9 +255,9 @@ void MainFrame::buildMainMenu()
     helpMenu->Append(Cmds::Menu_License, _("&License"));
     helpMenu->AppendSeparator();
     helpMenu->Append(Cmds::Menu_URLHomePage, _("FlameRobin &home page"));
-    helpMenu->Append(Cmds::Menu_URLProjectPage, _("SourceForge &project page"));
-    helpMenu->Append(Cmds::Menu_URLFeatureRequest, _("SourceForge &feature requests"));
-    helpMenu->Append(Cmds::Menu_URLBugReport, _("SourceForge &bug reports"));
+    helpMenu->Append(Cmds::Menu_URLProjectPage, _("Github &project page"));
+    helpMenu->Append(Cmds::Menu_URLFeatureRequest, _("Github &feature requests"));
+    helpMenu->Append(Cmds::Menu_URLBugReport, _("Github &bug reports"));
 #ifndef __WXMAC__
     helpMenu->AppendSeparator();
 #endif
@@ -373,6 +375,7 @@ EVT_MENU(Cmds::Menu_URLFeatureRequest, MainFrame::OnMenuURLFeatureRequest)
 EVT_MENU(Cmds::Menu_URLBugReport, MainFrame::OnMenuURLBugReport)
 EVT_MENU(wxID_PREFERENCES, MainFrame::OnMenuConfigure)
 
+EVT_MENU(Cmds::Menu_NewVolatileSQLEditor, MainFrame::OnMenuNewVolatileSQLEditor)
 EVT_MENU(Cmds::Menu_RegisterDatabase, MainFrame::OnMenuRegisterDatabase)
 EVT_UPDATE_UI(Cmds::Menu_RegisterDatabase, MainFrame::OnMenuUpdateIfServerSelected)
 EVT_MENU(Cmds::Menu_CreateDatabase, MainFrame::OnMenuCreateDatabase)
@@ -466,6 +469,7 @@ EVT_UPDATE_UI(Cmds::Menu_StartupDatabase, MainFrame::OnMenuUpdateIfDatabaseNotCo
     EVT_BUTTON(MainFrame::ID_button_prev, MainFrame::OnButtonPrevClick)
     EVT_BUTTON(MainFrame::ID_button_next, MainFrame::OnButtonNextClick)
 
+    EVT_MENU(Cmds::Menu_CreateCollation,  MainFrame::OnMenuCreateCollation)
     EVT_MENU(Cmds::Menu_CreateDBTrigger,  MainFrame::OnMenuCreateDBTrigger)
     EVT_MENU(Cmds::Menu_CreateDDLTrigger, MainFrame::OnMenuCreateDDLTrigger)
     EVT_MENU(Cmds::Menu_CreateDMLTrigger, MainFrame::OnMenuCreateDMLTrigger)
@@ -662,6 +666,7 @@ void MainFrame::OnTreeItemActivate(wxTreeEvent& event)
             case ntGenerator:
                 showGeneratorValue(dynamic_cast<Generator*>(m));
                 break;
+            case ntCollation:
             case ntColumn:
             case ntTable:
             case ntSysTable:
@@ -679,6 +684,8 @@ void MainFrame::OnTreeItemActivate(wxTreeEvent& event)
             case ntException:
             case ntRole:
             case ntSysRole:
+            case ntIndex:
+            case ntSysIndices:
                 {
                     wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED,
                         Cmds::Menu_ObjectProperties);
@@ -768,7 +775,7 @@ void MainFrame::OnMenuURLHomePage(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnMenuURLProjectPage(wxCommandEvent& WXUNUSED(event))
 {
-    showUrl("http://sourceforge.net/projects/flamerobin");
+    showUrl("https://github.com/mariuz/flamerobin");
 }
 
 void MainFrame::OnMenuURLFeatureRequest(wxCommandEvent& WXUNUSED(event))
@@ -960,6 +967,20 @@ void MainFrame::OnMenuBrowseData(wxCommandEvent& WXUNUSED(event))
         treeMainM->getSelectedMetadataItem(), this);
 }
 
+void MainFrame::OnMenuNewVolatileSQLEditor(wxCommandEvent& WXUNUSED(event))
+{
+    DatabasePtr db;
+    ServerPtr serverPtrM;
+
+    db = std::make_shared<Database>();
+    serverPtrM = std::make_shared<Server>();
+    db->setServer(serverPtrM);
+    db->setId(UINT_MAX-30);
+    db->setIsVolatile(true);
+
+    ExecuteSqlFrame* eff = new ExecuteSqlFrame(this, -1, _("Omni SQL Editor"), db);
+    eff->Show();
+}
 void MainFrame::OnMenuRegisterDatabase(wxCommandEvent& WXUNUSED(event))
 {
     ServerPtr s = getServer(treeMainM->getSelectedMetadataItem());
@@ -1520,6 +1541,12 @@ void MainFrame::showCreateTemplate(const wxString& statement)
     showSql(this, wxEmptyString, db, statement);
 }
 
+void MainFrame::OnMenuCreateCollation(wxCommandEvent& WXUNUSED(event))
+{
+    showCreateTemplate(
+        MetadataItemCreateStatementVisitor::getCreateCollationStatment());
+}
+
 void MainFrame::OnMenuAddColumn(wxCommandEvent& WXUNUSED(event))
 {
     Table* t = dynamic_cast<Table*>(treeMainM->getSelectedMetadataItem());
@@ -1691,7 +1718,9 @@ void MainFrame::OnMenuAlterObject(wxCommandEvent& WXUNUSED(event))
         return;
 
     wxString sql;
-    if (View* v = dynamic_cast<View*>(mi))
+    if (Collation* c = dynamic_cast<Collation*>(mi))
+        sql = c->getAlterSql();
+    else if (View* v = dynamic_cast<View*>(mi))
         sql = v->getAlterSql();
         //        sql = v->getRebuildSql();
     else if (Trigger* t = dynamic_cast<Trigger*>(mi))

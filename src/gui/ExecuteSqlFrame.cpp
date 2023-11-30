@@ -65,9 +65,11 @@
 #include "gui/InsertParametersDialog.h"
 #include "gui/StatementHistoryDialog.h"
 #include "gui/StyleGuide.h"
+#include "gui/FRStyleManager.h"
 #include "frutils.h"
 #include "logger.h"
 #include "metadata/column.h"
+#include "metadata/CharacterSet.h"
 #include "metadata/CreateDDLVisitor.h"
 #include "metadata/database.h"
 #include "metadata/exception.h"
@@ -342,13 +344,7 @@ void SqlEditor::setup()
     if (!config().get("sqlEditorSmartHomeKey", true))
         CmdKeyAssign(wxSTC_KEY_HOME, wxSTC_KEYMOD_NORM, wxSTC_CMD_HOMEDISPLAY);
         
-    stylerManager().assignGlobal(this);
-    StyleClearAll();
-    stylerManager().assignLexer(this);
-    SetLexer(wxSTC_LEX_SQL);
-    stylerManager().assignMargin(this);
-    setChars(false);
-
+    setupStyles();
 
     centerCaret(false);
 }
@@ -476,6 +472,17 @@ void SqlEditor::setFont()
 */
 }
 
+void SqlEditor::setupStyles()
+{
+    stylerManager().assignGlobal(this);
+    StyleClearAll();
+    stylerManager().assignLexer(this);
+    SetLexer(wxSTC_LEX_SQL);
+    stylerManager().assignMargin(this);
+    setChars(false);
+
+}
+
 class ScrollAtEnd
 {
 private:
@@ -519,17 +526,23 @@ ExecuteSqlFrame::ExecuteSqlFrame(wxWindow* WXUNUSED(parent), int id,
         wxString title,
         DatabasePtr db, const wxPoint& pos, const wxSize& size, long style)
     : BaseFrame(wxTheApp->GetTopWindow(), id, title, pos, size, style),
-        Observer(), databaseM(db.get())
+        Observer(), databasePtrM(db) //changed for volatile SQL Editor, as we only have a fake server and database
 {
     wxASSERT(db);
+    //Need this 2 PtrM lines especifically to keep a reference for both original objects in volatile SQL Editor else the serverptr is released as soon as exists MainFrame event call
+    databaseM = databasePtrM.get();
+    serverPtrM = databasePtrM->getServer();
 
     loadingM = true;
     updateEditorCaretPosM = true;
     updateFrameTitleM = true;
+    if (db->getIsVolative())
+        prepareVolatileDatabase();
 
     transactionIsolationLevelM = static_cast<IBPP::TIL>(config().get("transactionIsolationLevel", 0));
     transactionLockResolutionM = config().get("transactionLockResolution", true) ? IBPP::lrWait : IBPP::lrNoWait;
     transactionAccessModeM = config().get("transactionAccessMode", false) ? IBPP::amRead : IBPP::amWrite;
+    showStatisticsM = config().get("SQLEditorShowStats", true);
 
     timerBlobEditorM.SetOwner(this, TIMER_ID_UPDATE_BLOB);
 
@@ -551,6 +564,7 @@ ExecuteSqlFrame::ExecuteSqlFrame(wxWindow* WXUNUSED(parent), int id,
     notebook_pane_1 = new wxPanel(notebook_1, -1);
     styled_text_ctrl_stats = new wxStyledTextCtrl(notebook_pane_1, wxID_ANY,
         wxDefaultPosition, wxDefaultSize, wxBORDER_THEME);
+    stylerManager().attachObserver(this, false);
     stylerManager().assignGlobal(styled_text_ctrl_stats);
 
     styled_text_ctrl_stats->StyleClearAll();
@@ -573,11 +587,11 @@ ExecuteSqlFrame::ExecuteSqlFrame(wxWindow* WXUNUSED(parent), int id,
     do_layout();
 
     // observe database object to close on disconnect / destruction
-    databaseM->attachObserver(this, false);
+    if (!db->getIsVolative()) databaseM->attachObserver(this, false);
 
     executedStatementsM.clear();
     inTransaction(false);    // enable/disable controls
-    setKeywords();           // set words for autocomplete feature
+    if (!db->getIsVolative()) setKeywords();           // set words for autocomplete feature
 
     historyPositionM = StatementHistory::get(databaseM).size();
 
@@ -709,8 +723,6 @@ void ExecuteSqlFrame::buildMainMenu(CommandManager& cm)
     viewMenu->AppendCheckItem(Cmds::View_SplitView,
         cm.getMainMenuItemText(_("&Split view"), Cmds::View_SplitView));
     viewMenu->AppendSeparator();
-    viewMenu->Append(Cmds::View_Set_editor_font, _("Set editor &font"));
-    viewMenu->AppendSeparator();
     viewMenu->AppendCheckItem(Cmds::View_Wrap_long_lines,
         _("&Wrap long lines"));
     menuBarM->Append(viewMenu, _("&View"));
@@ -730,6 +742,8 @@ void ExecuteSqlFrame::buildMainMenu(CommandManager& cm)
         cm.getMainMenuItemText(_("&Execute"), Cmds::Query_Execute));
     statementMenu->Append(Cmds::Query_Show_plan,
         cm.getMainMenuItemText(_("Show execution &plan"), Cmds::Query_Show_plan));
+    statementMenu->AppendCheckItem(Cmds::Query_Show_Statistics,
+        cm.getMainMenuItemText(_("Display detailed query statistics"), Cmds::Query_Show_Statistics));
     statementMenu->Append(Cmds::Query_Execute_selection,
         cm.getMainMenuItemText(_("Execute &selection"), Cmds::Query_Execute_selection));
     statementMenu->Append(Cmds::Query_Execute_from_cursor,
@@ -781,9 +795,6 @@ void ExecuteSqlFrame::buildMainMenu(CommandManager& cm)
     gridMenu->Append(Cmds::DataGrid_Save_as_html,    _("Save as &html"));
     gridMenu->Append(Cmds::DataGrid_Save_as_csv,     _("Save as cs&v"));
     gridMenu->AppendSeparator();
-    gridMenu->Append(Cmds::DataGrid_Set_header_font, _("Set h&eader font"));
-    gridMenu->Append(Cmds::DataGrid_Set_cell_font,   _("Set cell f&ont"));
-    gridMenu->AppendSeparator();
     gridMenu->AppendCheckItem(Cmds::DataGrid_Log_changes, _("&Log data changes"));
     menuBarM->Append(gridMenu, _("&Grid"));
 
@@ -800,7 +811,8 @@ void ExecuteSqlFrame::set_properties()
     int statusbar_widths[] = { -2, 100, 60, -1 };
     statusbar_1->SetStatusWidths(4, statusbar_widths);
 
-    statusbar_1->SetStatusText(databaseM->getConnectionInfoString(), 0);
+    if ( ! databaseM->getIsVolative() )
+        statusbar_1->SetStatusText(databaseM->getConnectionInfoString(), 0);
     statusbar_1->SetStatusText("Rows fetched", 1);
     statusbar_1->SetStatusText("Cursor position", 2);
     statusbar_1->SetStatusText("Transaction status", 3);
@@ -875,7 +887,11 @@ void ExecuteSqlFrame::doBeforeDestroy()
     if (grid_data->IsCellEditControlEnabled())
         grid_data->EnableCellEditControl(false);
     // make sure that further calls to update() will not call Close() again
+    if (databaseM->getIsVolative() && databaseM->isConnected())
+        databaseM->disconnect();
     databaseM = 0;
+    databasePtrM = 0;
+    serverPtrM = 0;
 }
 
 void ExecuteSqlFrame::showProperties(wxString objectName)
@@ -937,7 +953,6 @@ BEGIN_EVENT_TABLE(ExecuteSqlFrame, wxFrame)
     EVT_UPDATE_UI(Cmds::View_Data, ExecuteSqlFrame::OnMenuUpdateSelectView)
     EVT_MENU(Cmds::View_SplitView, ExecuteSqlFrame::OnMenuSplitView)
     EVT_UPDATE_UI(Cmds::View_SplitView, ExecuteSqlFrame::OnMenuUpdateSplitView)
-    EVT_MENU(Cmds::View_Set_editor_font, ExecuteSqlFrame::OnMenuSetEditorFont)
     EVT_MENU(Cmds::View_Wrap_long_lines, ExecuteSqlFrame::OnMenuToggleWrap)
 
     EVT_MENU(Cmds::Find_Selected_Object,   ExecuteSqlFrame::OnMenuFindSelectedObject)
@@ -950,6 +965,8 @@ BEGIN_EVENT_TABLE(ExecuteSqlFrame, wxFrame)
 
     EVT_MENU(Cmds::Query_Execute,             ExecuteSqlFrame::OnMenuExecute)
     EVT_MENU(Cmds::Query_Show_plan,           ExecuteSqlFrame::OnMenuShowPlan)
+    EVT_MENU(Cmds::Query_Show_Statistics,     ExecuteSqlFrame::OnMenuShowStatistics)
+    EVT_UPDATE_UI(Cmds::Query_Show_Statistics, ExecuteSqlFrame::OnMenuUpdateShowStatistics)
     EVT_MENU(Cmds::Query_Execute_selection,   ExecuteSqlFrame::OnMenuExecuteSelection)
     EVT_MENU(Cmds::Query_Execute_from_cursor, ExecuteSqlFrame::OnMenuExecuteFromCursor)
     EVT_UPDATE_UI(Cmds::Query_Execute,             ExecuteSqlFrame::OnMenuUpdateWhenExecutePossible)
@@ -980,8 +997,6 @@ BEGIN_EVENT_TABLE(ExecuteSqlFrame, wxFrame)
     EVT_MENU(Cmds::DataGrid_ExportBlob,      ExecuteSqlFrame::OnMenuGridExportBlob)
     EVT_MENU(Cmds::DataGrid_Save_as_html,    ExecuteSqlFrame::OnMenuGridSaveAsHtml)
     EVT_MENU(Cmds::DataGrid_Save_as_csv,     ExecuteSqlFrame::OnMenuGridSaveAsCsv)
-    EVT_MENU(Cmds::DataGrid_Set_header_font, ExecuteSqlFrame::OnMenuGridGridHeaderFont)
-    EVT_MENU(Cmds::DataGrid_Set_cell_font,   ExecuteSqlFrame::OnMenuGridGridCellFont)
     EVT_MENU(Cmds::DataGrid_FetchAll,        ExecuteSqlFrame::OnMenuGridFetchAll)
     EVT_MENU(Cmds::DataGrid_CancelFetchAll,  ExecuteSqlFrame::OnMenuGridCancelFetchAll)
 
@@ -1548,11 +1563,6 @@ void ExecuteSqlFrame::OnMenuUpdateSplitView(wxUpdateUIEvent& event)
     event.Check(splitter_window_1->IsSplit());
 }
 
-void ExecuteSqlFrame::OnMenuSetEditorFont(wxCommandEvent& WXUNUSED(event))
-{
-    styled_text_ctrl_sql->setFont();
-}
-
 void ExecuteSqlFrame::OnMenuToggleWrap(wxCommandEvent& WXUNUSED(event))
 {
     const int mode = styled_text_ctrl_sql->GetWrapMode();
@@ -1617,6 +1627,16 @@ void ExecuteSqlFrame::OnMenuExecute(wxCommandEvent& WXUNUSED(event))
 void ExecuteSqlFrame::OnMenuShowPlan(wxCommandEvent& WXUNUSED(event))
 {
     prepareAndExecute(true);
+}
+
+void ExecuteSqlFrame::OnMenuShowStatistics(wxCommandEvent& event)
+{
+    showStatisticsM = event.IsChecked();
+}
+
+void ExecuteSqlFrame::OnMenuUpdateShowStatistics(wxUpdateUIEvent& event)
+{
+    event.Check(showStatisticsM);
 }
 
 void ExecuteSqlFrame::OnMenuExecuteFromCursor(wxCommandEvent& WXUNUSED(event))
@@ -1972,15 +1992,6 @@ void ExecuteSqlFrame::OnMenuGridSaveAsCsv(wxCommandEvent& WXUNUSED(event))
     grid_data->saveAsCSV(fileName, fieldDelimiter, textDelimiter);
 }
 
-void ExecuteSqlFrame::OnMenuGridGridHeaderFont(wxCommandEvent& WXUNUSED(event))
-{
-    grid_data->setHeaderFont();
-}
-
-void ExecuteSqlFrame::OnMenuGridGridCellFont(wxCommandEvent& WXUNUSED(event))
-{
-    grid_data->setCellFont();
-}
 
 void ExecuteSqlFrame::OnMenuUpdateGridHasSelection(wxUpdateUIEvent& event)
 {
@@ -2084,10 +2095,61 @@ bool ExecuteSqlFrame::setSql(wxString sql)
     return true;
 }
 
+void ExecuteSqlFrame::setupStyles()
+{
+    stylerManager().loadConfig();
+
+    styled_text_ctrl_sql->setupStyles();
+
+    stylerManager().assignGlobal(styled_text_ctrl_stats);
+
+    styled_text_ctrl_stats->StyleClearAll();
+    styled_text_ctrl_stats->SetWrapMode(wxSTC_WRAP_WORD);
+    styled_text_ctrl_stats->StyleSetForeground(1, *wxRED);
+    styled_text_ctrl_stats->StyleSetForeground(2, *wxBLUE);
+
+    grid_data->SetBackgroundColour(stylerManager().getDefaultStyle()->getbgColor());
+    grid_data->setupStyles();
+
+}
+
 void ExecuteSqlFrame::clearLogBeforeExecution()
 {
     if (config().get("SQLEditorExecuteClears", false))
         styled_text_ctrl_stats->ClearAll();
+}
+
+void ExecuteSqlFrame::prepareVolatileDatabase(wxString hostname, wxString port, wxString path, wxString user, wxString password, wxString role, wxString charset)
+{
+    /*DatabasePtr dbM = std::make_shared<Database>();
+    ServerPtr serverPtrM = std::make_shared<Server>();
+    dbM->setServer(serverPtrM);
+    databaseM = dbM.get();*/
+    //databaseM = new Database();
+    //databaseM = std::make_shared<Database>();
+    //databaseM->setId(UINT_MAX-30);
+    //this->serverM = new Server();
+    //serverPtrM = ServerPtr(serverM);
+    ServerPtr serverPtrM = databaseM->getServer();
+    if (!serverPtrM->getHostname().compare(hostname) || !serverPtrM->getPort().compare(port) || !databaseM->getPath().compare(path) || !databaseM->getUsername().compare(user) || !databaseM->getRawPassword().compare(password) || !databaseM->getRole().compare(role) || !databaseM->getDatabaseCharset().compare(charset))
+    {
+        databaseM->disconnect();
+        transactionM = 0;
+    }
+    else
+        return;
+
+    serverPtrM->setHostname(hostname);
+    serverPtrM->setPort(port);
+
+    databaseM->setPath(path);
+    databaseM->setName_("VOLATILECONNECTION");
+    databaseM->setUsername(user);
+    databaseM->setRawPassword(password);
+    databaseM->setRole(role);
+    databaseM->setConnectionCharset(charset);
+    //databaseM->setServer(serverPtrM);
+
 }
 
 void ExecuteSqlFrame::prepareAndExecute(bool prepareOnly)
@@ -2221,38 +2283,6 @@ void ExecuteSqlFrame::OnMenuUpdateWhenExecutePossible(wxUpdateUIEvent& event)
     event.Enable(!closeWhenTransactionDoneM);
 }
 
-wxString IBPPtype2string(Database *db, IBPP::SDT t, int subtype, int size,
-    int scale)
-{
-    if (scale > 0)
-        return wxString::Format("NUMERIC(%d,%d)", size==4 ? 9:18, scale);
-    if (t == IBPP::sdString)
-    {
-        int bpc = db->getCharsetById(subtype).getBytesPerChar();
-        return wxString::Format("STRING(%d)", bpc ? size/bpc : size);
-    }
-    switch (t)
-    {
-        case IBPP::sdArray:     return "ARRAY";
-        case IBPP::sdBlob:      return wxString::Format(
-                                    "BLOB SUB_TYPE %d", subtype);
-        case IBPP::sdDate:      return "DATE";
-        case IBPP::sdTime:      return "TIME";
-        case IBPP::sdTimestamp: return "TIMESTAMP";
-        case IBPP::sdSmallint:  return "SMALLINT";
-        case IBPP::sdInteger:   return "INTEGER";
-        case IBPP::sdLargeint:  return "BIGINT";
-        case IBPP::sdFloat:     return "FLOAT";
-        case IBPP::sdDouble:    return "DOUBLE PRECISION";
-        case IBPP::sdTimeTz:    return "TIME WITH TIMEZONE";
-        case IBPP::sdTimestampTz: return "TIMESTAMP WITH TIMEZONE";
-        case IBPP::sdInt128:    return "INT128";
-        case IBPP::sdDec16:     return "DECFLOAT(16)";
-        case IBPP::sdDec34:     return "DECFLOAT(34)";
-        default:                return "UNKNOWN";
-    }
-}
-
 void ExecuteSqlFrame::compareCounts(IBPP::DatabaseCounts& one,
     IBPP::DatabaseCounts& two)
 {
@@ -2272,6 +2302,10 @@ void ExecuteSqlFrame::compareCounts(IBPP::DatabaseCounts& one,
             str_log += wxString::Format(_("%d updates. "), r1.updates - r2.updates);
         if (r1.deletes > r2.deletes)
             str_log += wxString::Format(_("%d deletes. "), r1.deletes - r2.deletes);
+        if (r1.readIndex > r2.readIndex)
+            str_log += wxString::Format(_("%d reads index. "), r1.readIndex - r2.readIndex);
+        if (r1.readSequence > r2.readSequence)
+            str_log += wxString::Format(_("%d reads sequence. "), r1.readSequence - r2.readSequence);
         if (!str_log.IsEmpty())
         {
             wxString relName;
@@ -2342,7 +2376,45 @@ bool ExecuteSqlFrame::execute(wxString sql, const wxString& terminator,
         log(_("Empty statement detected, bailing out..."));
         return true;
     }
+    
 
+    SqlStatement stm(sql, databaseM, terminator);
+
+    if ((stm.getAction() == actCONNECT) || (stm.getAction() == actCREATE_DATABASE))
+    {
+        if (!databaseM->getIsVolative())
+        {
+            log(_("Cannot use 'connect' or 'create' statement in a regular SQL Script"), ttError);
+            splitScreen();
+            return false;
+        }
+        wxString connHostM, connDatabasePortM, connPathM, connUsernameM, connPasswordM, connRoleM, connCharsetM; int createPageSizeM, createDialecM;
+        stm.getCONNECTION(connHostM, connDatabasePortM, connPathM, connUsernameM, connPasswordM, connRoleM, connCharsetM);
+        prepareVolatileDatabase(connHostM, connDatabasePortM, connPathM, connUsernameM, connPasswordM, connRoleM, connCharsetM);
+        if (stm.getAction() == actCREATE_DATABASE) {
+            createPageSizeM = stm.getCreatePageSize();
+            createDialecM = stm.getCreateDialect();
+            log(wxString::Format("Creating database: %s, port: %s, database: %s, user: %s, password: %s, role: %s, charset: %s, page size: %d, dialect %d", connHostM, connDatabasePortM, connPathM, connUsernameM, connPasswordM, connRoleM, connCharsetM, createPageSizeM, createDialecM), ttSql);
+            databaseM->create(createPageSizeM, createDialecM);
+        }
+        log(wxString::Format("Connecting to host: %s, port: %s, database: %s, user: %s, password: %s, role: %s, charset: %s", connHostM, connDatabasePortM, connPathM, connUsernameM, connPasswordM, connRoleM, connCharsetM), ttSql);
+        databaseM->connect(databaseM->getRawPassword());
+        return databaseM->isConnected();
+
+    }
+    else
+    if (stm.getAction() == actDISCONNECT) 
+    {
+        if (!databaseM->getIsVolative())
+        {
+            log(_("Cannot use 'disconnect' statement in a regular SQL Script"), ttError);
+            splitScreen();
+            return false;
+        }
+        databaseM->disconnect();
+        transactionM = 0;
+        return true;
+    }
     if (styled_text_ctrl_sql->AutoCompActive())
         styled_text_ctrl_sql->AutoCompCancel();    // remove the list if needed
     notebook_1->SetSelection(0);
@@ -2386,7 +2458,7 @@ bool ExecuteSqlFrame::execute(wxString sql, const wxString& terminator,
             del1 = 0, ridx1 = 0, rseq1 = 0, mem1 = 0;
         int fetch2, mark2, read2, write2, ins2, upd2, del2, ridx2, rseq2, mem2;
         IBPP::DatabaseCounts counts1, counts2;
-        bool doShowStats = config().get("SQLEditorShowStats", true);
+        bool doShowStats = showStatisticsM;
         if (!prepareOnly && doShowStats)
         {
             databaseM->getIBPPDatabase()->
@@ -2525,7 +2597,6 @@ bool ExecuteSqlFrame::execute(wxString sql, const wxString& terminator,
                 {
                 }
             }
-            SqlStatement stm(sql, databaseM, terminator);
             if (stm.isDDL())
                 type = IBPP::stDDL;
             executedStatementsM.push_back(stm);
@@ -2926,6 +2997,7 @@ void ExecuteSqlFrame::update()
 {
     if (databaseM && !databaseM->isConnected())
         Close();
+    setupStyles();
 }
 
 //! closes window if database is removed (unregistered)
@@ -3792,5 +3864,36 @@ bool EditPackageBodyHandler::handleURI(URI& uri)
     p->acceptVisitor(&cdv);
     showSql(w->GetParent(), _("Editing Package Body"), p->getDatabase(),
         p->getAlterBody());
+    return true;
+}
+
+
+class EditCollationHandler : public URIHandler,
+    private MetadataItemURIHandlerHelper, private GUIURIHandlerHelper
+{
+public:
+    EditCollationHandler() {}
+    bool handleURI(URI& uri);
+private:
+    // singleton; registers itself on creation.
+    static const EditCollationHandler handlerInstance;
+};
+
+const EditCollationHandler EditCollationHandler::handlerInstance;
+
+bool EditCollationHandler::handleURI(URI& uri)
+{
+    if (uri.action != "edit_collation")
+        return false;
+
+    Collation* c = extractMetadataItemFromURI<Collation>(uri);
+    wxWindow* w = getParentWindow(uri);
+    if (!c || !w)
+        return true;
+
+    CreateDDLVisitor cdv;
+    c->acceptVisitor(&cdv);
+    showSql(w->GetParent(), _("Editing Collation"), c->getDatabase(),
+        c->getAlterSql());
     return true;
 }
