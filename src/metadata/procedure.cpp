@@ -340,6 +340,8 @@ wxString Procedure::getSqlSecurity()
         st1->Set(1, wx2std(getName_(), converter));
         st1->Execute();
         st1->Fetch();
+        if (st1->IsNull(1))
+            return wxString();
         bool b;
         st1->Get(1, b);
         return wxString(b ? "SQL SECURITY DEFINER" : "SQL SECURITY INVOKER");
@@ -366,7 +368,7 @@ wxString Procedure::getAlterSql(bool full)
             wxString charset;
             wxString param = (*it)->getQuotedName() + " ";
             DomainPtr dm = (*it)->getDomain();
-            if ((*it)->getMechanism() == 1) {
+            if ((*it)->getMechanism() == 1 && full) { //when header only, it's better to get the type from the domain to avoud dependency lock
                 param += (*it)->getTypeOf();
             }else
             if (dm){
@@ -384,7 +386,7 @@ wxString Procedure::getAlterSql(bool full)
                 }
                 else
                 {
-                    if ((*it)->getMechanism() == 1)
+                    if ((*it)->getMechanism() == 1 && full) //when header only, it's better to get the type from the domain to avoud dependency lock
                         param += (*it)->getTypeOf();
                     else
                         param += dm->getQuotedName();
