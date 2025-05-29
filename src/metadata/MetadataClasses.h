@@ -42,7 +42,6 @@ typedef std::shared_ptr<Collations> CollationsPtr;
 class SysCollations;
 typedef std::shared_ptr<SysCollations> SysCollationsPtr;
 
-
 class Column;
 typedef std::shared_ptr<Column> ColumnPtr;
 typedef std::vector<ColumnPtr> ColumnPtrs;
@@ -51,12 +50,6 @@ class Database;
 typedef std::shared_ptr<Database> DatabasePtr;
 typedef std::weak_ptr<Database> DatabaseWeakPtr;
 typedef std::vector<DatabasePtr> DatabasePtrs;
-
-class Trigger;
-typedef std::shared_ptr<Trigger> TriggerPtr;
-typedef std::vector<TriggerPtr> TriggerPtrs;
-class Triggers;
-typedef std::shared_ptr<Triggers> TriggersPtr;
 
 class DBTrigger;
 typedef std::shared_ptr<DBTrigger> DBTriggerPtr;
@@ -90,6 +83,12 @@ typedef std::vector<ExceptionPtr> ExceptionPtrs;
 class Exceptions;
 typedef std::shared_ptr<Exceptions> ExceptionsPtr;
 
+class Filter;
+typedef std::shared_ptr<Filter> FilterPtr;
+typedef std::vector<FilterPtr> FilterPtrs;
+class Filters;
+typedef std::shared_ptr<Filters> FiltersPtr;
+
 class ForeignKey;
 
 class FunctionSQL;
@@ -98,12 +97,17 @@ typedef std::vector<FunctionSQLPtr> FunctionSQLPtrs;
 class FunctionSQLs;
 typedef std::shared_ptr<FunctionSQLs> FunctionSQLsPtr;
 
-
 class Generator;
 typedef std::shared_ptr<Generator> GeneratorPtr;
 typedef std::vector<GeneratorPtr> GeneratorPtrs;
 class Generators;
 typedef std::shared_ptr<Generators> GeneratorsPtr;
+
+class GTTable;
+typedef std::shared_ptr<GTTable> GTTablePtr;
+typedef std::vector<GTTablePtr> GTTablePtrs;
+class GTTables;
+typedef std::shared_ptr<GTTables> GTTablesPtr;
 
 class Index;
 typedef std::shared_ptr<Index> IndexPtr;
@@ -115,15 +119,12 @@ typedef std::shared_ptr<SysIndices> SysIndicesPtr;
 class UsrIndices;
 typedef std::shared_ptr<UsrIndices> UsrIndicesPtr;
 
-
 class MetadataItem;
 typedef std::shared_ptr<MetadataItem> MetadataItemPtr;
 typedef std::vector<MetadataItemPtr> MetadataItemPtrs;
 template <class T>
 class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
-
-
 
 class Method;
 typedef std::shared_ptr<Method> MethodPtr;
@@ -167,12 +168,6 @@ typedef std::shared_ptr<Server> ServerPtr;
 typedef std::weak_ptr<Server> ServerWeakPtr;
 typedef std::vector<ServerPtr> ServerPtrs;
 
-class GTTable;
-typedef std::shared_ptr<GTTable> GTTablePtr;
-typedef std::vector<GTTablePtr> GTTablePtrs;
-class GTTables;
-typedef std::shared_ptr<GTTables> GTTablesPtr;
-
 class SysTable;
 typedef std::shared_ptr<SysTable> SysTablePtr;
 typedef std::vector<SysTablePtr> SysTablePtrs;
@@ -184,6 +179,12 @@ typedef std::shared_ptr<Table> TablePtr;
 typedef std::vector<TablePtr> TablePtrs;
 class Tables;
 typedef std::shared_ptr<Tables> TablesPtr;
+
+class Trigger;
+typedef std::shared_ptr<Trigger> TriggerPtr;
+typedef std::vector<TriggerPtr> TriggerPtrs;
+class Triggers;
+typedef std::shared_ptr<Triggers> TriggersPtr;
 
 class UDF;
 typedef std::shared_ptr<UDF> UDFPtr;
@@ -199,6 +200,9 @@ typedef std::vector<UserPtr> UserPtrs;
 class Users;
 typedef std::shared_ptr<Users> UsersPtr;
 
+class UserAttribute;
+typedef std::shared_ptr<UserAttribute> UserAttributePtr;
+typedef std::vector<UserAttributePtr> UserAttributePtrs;
 
 class View;
 typedef std::shared_ptr<View> ViewPtr;

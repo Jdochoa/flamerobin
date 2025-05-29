@@ -129,3 +129,27 @@ wxString User30::getAlterSqlStatement()
     return sql;
 }
 
+UserAttribute::UserAttribute(MetadataItem* user, wxString name)
+    : MetadataItem(ntUserAttribute, user, name )
+{
+}
+
+wxString UserAttribute::getValue() const
+{
+    return valueM;
+}
+
+wxString UserAttribute::getPlugin() const
+{
+    return pluginM;
+}
+
+void UserAttribute::setValue(const wxString& value)
+{
+    valueM = value;
+}
+
+void UserAttribute::setPlugin(const wxString& plugin)
+{
+    pluginM = plugin;
+}

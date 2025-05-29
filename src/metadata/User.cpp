@@ -45,12 +45,12 @@ void User::loadProperties()
 }
 
 User::User(ServerPtr server)
-    : MetadataItem(ntUnknown, server.get()), serverM(server)
+    : MetadataItem(ntUser, server.get()), serverM(server)
 {
 }
 
 User::User(ServerPtr server, const IBPP::User& src)
-    : MetadataItem(ntUnknown, server.get()), serverM(server),
+    : MetadataItem(ntUser, server.get()), serverM(server),
         useridM(src.userid), groupidM(src.groupid)
 {
     usernameM = src.username;

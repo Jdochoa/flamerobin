@@ -31,6 +31,28 @@
 #include "metadata/metadataitem.h"
 #include "metadata/User.h"
 
+class UserAttribute : MetadataItem
+    , public std::enable_shared_from_this<UserAttribute>
+{
+private:
+    wxString valueM;
+    wxString pluginM;
+protected:
+    virtual void loadProperties();
+
+public:
+    UserAttribute(MetadataItem* user, wxString name);
+
+    wxString getValue() const;
+    wxString getPlugin() const;
+
+    void setValue(const wxString& value);
+    void setPlugin(const wxString& plugin);
+
+    virtual const wxString getTypeName() const;
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+};
+
 
 class User30: public User
 {
