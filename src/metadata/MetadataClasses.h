@@ -34,6 +34,7 @@ typedef std::vector<CharacterSetPtr> CharacterSetPtrs;
 class CharacterSets;
 typedef std::shared_ptr<CharacterSets> CharacterSetsPtr;
 
+// ToDo: Inplementarion pending
 class Collation;
 typedef std::shared_ptr<Collation> CollationPtr;
 typedef std::vector<CollationPtr> CollationPtrs;
@@ -83,6 +84,7 @@ typedef std::vector<ExceptionPtr> ExceptionPtrs;
 class Exceptions;
 typedef std::shared_ptr<Exceptions> ExceptionsPtr;
 
+// ToDo: Inplementarion pending
 class Filter;
 typedef std::shared_ptr<Filter> FilterPtr;
 typedef std::vector<FilterPtr> FilterPtrs;
@@ -109,6 +111,13 @@ typedef std::vector<GTTablePtr> GTTablePtrs;
 class GTTables;
 typedef std::shared_ptr<GTTables> GTTablesPtr;
 
+// ToDo: Inplementarion pending
+class GlobalMapping;
+typedef std::shared_ptr<GlobalMapping> GlobalMappingPtr;
+typedef std::vector<GlobalMappingPtr> GlobalMappingPtrs;
+class GlobalMappings;
+typedef std::shared_ptr<GlobalMappings> GlobalMappingsPtr;
+
 class Index;
 typedef std::shared_ptr<Index> IndexPtr;
 typedef std::vector<IndexPtr> IndexPtrs;
@@ -118,6 +127,13 @@ class SysIndices;
 typedef std::shared_ptr<SysIndices> SysIndicesPtr;
 class UsrIndices;
 typedef std::shared_ptr<UsrIndices> UsrIndicesPtr;
+
+// ToDo: Inplementarion pending
+class Mapping;
+typedef std::shared_ptr<Mapping> MappingPtr;
+typedef std::vector<MappingPtr> MappingPtrs;
+class Mappings;
+typedef std::shared_ptr<Mappings> MappingsPtr;
 
 class MetadataItem;
 typedef std::shared_ptr<MetadataItem> MetadataItemPtr;
@@ -163,6 +179,13 @@ typedef std::shared_ptr<SysRoles> SysRolesPtr;
 class Root;
 typedef std::shared_ptr<Root> RootPtr;
 
+// ToDo: Inplementarion pending
+class Schema;
+typedef std::shared_ptr<Schema> SchemaPtr;
+typedef std::vector<SchemaPtr> SchemaPtrs;
+class Schemas;
+typedef std::shared_ptr<Schemas> SchemasPtr;
+
 class Server;
 typedef std::shared_ptr<Server> ServerPtr;
 typedef std::weak_ptr<Server> ServerWeakPtr;
@@ -179,6 +202,13 @@ typedef std::shared_ptr<Table> TablePtr;
 typedef std::vector<TablePtr> TablePtrs;
 class Tables;
 typedef std::shared_ptr<Tables> TablesPtr;
+
+// ToDo: Inplementarion pending
+class Tablespace;
+typedef std::shared_ptr<Tablespace> TablespacePtr;
+typedef std::vector<TablespacePtr> TablespacePtrs;
+class Tablespaces;
+typedef std::shared_ptr<Tablespaces> TablespacesPtr;
 
 class Trigger;
 typedef std::shared_ptr<Trigger> TriggerPtr;
@@ -200,9 +230,12 @@ typedef std::vector<UserPtr> UserPtrs;
 class Users;
 typedef std::shared_ptr<Users> UsersPtr;
 
+// ToDo: Inplementarion in progress
 class UserAttribute;
 typedef std::shared_ptr<UserAttribute> UserAttributePtr;
 typedef std::vector<UserAttributePtr> UserAttributePtrs;
+class UserAttributes;
+typedef std::shared_ptr<UserAttributes> UserAttributesPtr;
 
 class View;
 typedef std::shared_ptr<View> ViewPtr;
