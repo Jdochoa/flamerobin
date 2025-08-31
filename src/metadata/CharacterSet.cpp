@@ -151,8 +151,6 @@ void CharacterSet::loadChildren()
         collationsM.swap(collations);
         notifyObservers();
     }
-
-
 }
 
 void CharacterSet::lockChildren()

@@ -37,15 +37,15 @@
 #include "engine/MetadataLoader.h"
 #include "metadata/MetadataItemVisitor.h"
 #include "metadata/server.h"
-#include "metadata/FB20/User20.h"
+#include "metadata/11_0/User11_0.h"
 
 
-Users20::Users20(DatabasePtr database)
+Users11_0::Users11_0(DatabasePtr database)
     :Users(database)
 {
 }
 
-void Users20::load(ProgressIndicator* )
+void Users11_0::load(ProgressIndicator* )
 {
     DatabasePtr db = getDatabase();
     IBPP::Service svc;
@@ -67,7 +67,7 @@ void Users20::load(ProgressIndicator* )
 
 
 
-void User20::loadProperties()
+void User11_0::loadProperties()
 {
     setPropertiesLoaded(false);
 
@@ -86,17 +86,17 @@ void User20::loadProperties()
     notifyObservers();
 }
 
-User20::User20(ServerPtr server) 
+User11_0::User11_0(ServerPtr server) 
     : User(server)
 {
 }
 
-User20::User20(ServerPtr server, const IBPP::User& src)
+User11_0::User11_0(ServerPtr server, const IBPP::User& src)
     :User(server, src)
 {
 }
 
-User20::User20(DatabasePtr database, const wxString& name)
+User11_0::User11_0(DatabasePtr database, const wxString& name)
     :User(database, name)
 {
 }

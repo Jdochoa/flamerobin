@@ -67,8 +67,8 @@
 #include "metadata/trigger.h"
 #include "metadata/view.h"
 #include "metadata/User.h"
-#include "metadata/FB20/User20.h"
-#include "metadata/FB30/User30.h"
+#include "metadata/11_0/User11_0.h"
+#include "metadata/12_0/User12_0.h"
 
 #include "sql/SqlStatement.h"
 #include "sql/SqlTokenizer.h"
@@ -1226,22 +1226,22 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
             
             switch (getInfo().getFullODS()) {
             case 110:                          // FB2.0
-                usersM.reset(new Users20(me));
+                usersM.reset(new Users11_0(me));
                 break;
             case 111:                          // FB2.1
-                usersM.reset(new Users20(me));
+                usersM.reset(new Users11_0(me));
                 break;
             case 112:                          // FB2.5
-                usersM.reset(new Users20(me));
+                usersM.reset(new Users11_0(me));
                 break;
             case 120:                          // FB3.0
-                usersM.reset(new Users30(me));
+                usersM.reset(new Users12_0(me));
                 break;
             case 130:                          // FB4.0
-                usersM.reset(new Users30(me));
+                usersM.reset(new Users12_0(me));
                 break;
             default:
-                usersM.reset(new Users30(me));
+                usersM.reset(new Users12_0(me));
 
             }
             initializeLockCount(usersM, lockCount);

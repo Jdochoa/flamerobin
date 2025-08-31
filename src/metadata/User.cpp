@@ -233,7 +233,6 @@ wxString User::getSource()
     wxString sql = "FIRSTNAME '" + getFirstName() + "' \n" +
         "MIDDLENAME '" + getMiddleName() + "' \n"
         "LASTNAME '" + getLastName() + "' \n"
-        "USING PLUGIN "+" \n"
         ;
     return sql;
 }

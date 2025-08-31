@@ -48,6 +48,7 @@
 #include "metadata/server.h"
 #include "metadata/table.h"
 #include "metadata/User.h"
+#include "metadata/12_0/User12_0.h"
 #include "metadata/view.h"
 #include "metadata/package.h"
 
@@ -950,7 +951,14 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
     // If the current object  is a user, expands to various user properties.
     else if (cmdName == "userinfo" && !cmdParams.IsEmpty())
     {
+
+        
         User* u = dynamic_cast<User*>(object);
+
+        //if (u->getDatabase()->getInfo().getODSVersionIsHigherOrEqualTo(12))
+            
+
+        
         if (!u)
             return;
 
@@ -966,6 +974,8 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
             processedText << u->getUserId();
         else if (cmdParams[0] == "unix_group")
             processedText << u->getGroupId();
+        else if (cmdParams[0] == "plugin")
+            processedText << dynamic_cast<User12_0*>(u)->getPlugin();
         else if (cmdParams[0] == "source")
             processedText += tp->escapeChars(u->getSource(), false);
 

@@ -116,6 +116,10 @@ protected:
 
     void resetPendingLoadData();
 
+    virtual int getDBType() const { return -1; };
+    //virtual void getDependent(std::vector<Dependency>& list,  bool fieldsOnly = false);
+    //virtual void getDepended(std::vector<Dependency>& list, bool fieldsOnly = false);
+
 public:
     MetadataItem();
     MetadataItem(NodeType type, MetadataItem* parent = 0,
@@ -126,8 +130,7 @@ public:
     virtual void unlockSubject();
 
     void getDependencies(std::vector<Dependency>& list, bool ofObject, bool fieldsOnly=false);  // load from db
-    void getDependencies(std::vector<Dependency>& list, bool ofObject,
-        const wxString& field);  // load from db
+    void getDependencies(std::vector<Dependency>& list, bool ofObject, const wxString& field);  // load from db
     void getDependenciesPivoted(std::vector<DependencyField>& list);
 
 

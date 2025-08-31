@@ -22,8 +22,9 @@
 */
 
 
-#ifndef FR_USER_20_H
-#define FR_USER_20_H
+#pragma once
+#ifndef FR_USER_11_0_H
+#define FR_USER_11_0_H
 
 #include <ibpp.h>
 
@@ -32,27 +33,27 @@
 #include "metadata/User.h"
 
 
-class User20: public User
+class User11_0: public User
 {
 protected:
     virtual void loadProperties();
 public:
-    User20(ServerPtr server);
-    User20(ServerPtr server, const IBPP::User& src);
-    User20(DatabasePtr database, const wxString& name);
+    User11_0(ServerPtr server);
+    User11_0(ServerPtr server, const IBPP::User& src);
+    User11_0(DatabasePtr database, const wxString& name);
 };
 
-class Users20 : public Users
+class Users11_0 : public Users
 {
 public:
-    Users20(DatabasePtr database);
+    Users11_0(DatabasePtr database);
     virtual void load(ProgressIndicator* progressIndicator);
 
     virtual ItemType newItem(const wxString & name) {
-        ItemType item(new User20(getDatabase(), name));
+        ItemType item(new User11_0(getDatabase(), name));
         return item;
     }
 
 };
 
-#endif // FR_USER_20_H
+#endif // FR_USER_11_0_H
