@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2004-2022 The FlameRobin Development Team
+  Copyright (c) 2004-2025 The FlameRobin Development Team
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -94,7 +94,8 @@ void DDUdbg(DOUBLE_DABBLE_UNION& ddu)
 bool DDUinitFromStr(DOUBLE_DABBLE_UNION& ddu, bool &isNegative, const wxString &src, wxString& errMsg)
 {
     wxString src2;
-    int i1, iByte;
+    size_t i1;
+    int iByte;
     uint8_t ch;
     wxChar sep1000;
 
@@ -106,7 +107,7 @@ bool DDUinitFromStr(DOUBLE_DABBLE_UNION& ddu, bool &isNegative, const wxString &
 
     // replace thousand separators - if used
     if (wxNumberFormatter::GetThousandsSeparatorIfUsed(&sep1000))
-        src2.Replace(_(sep1000), _(""));
+        src2.Replace(sep1000, _(""));
 
     // Check: numeric?
     for (i1 = 0; i1 < src2.Length(); i1++)

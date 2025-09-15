@@ -210,10 +210,10 @@ void decodeTimeTz(IBPP::Time& tm, const ISC_TIME_TZ& isc_tm)
     char tzBuf[FB_MAX_TIME_ZONE_NAME_LENGTH];
     IBPP::Time::TimezoneMode tzMode = IBPP::Time::tmTimezone;
 
-    fbIntfClass* fbIntf = fbIntfClass::getInstance();
+    /*fbIntfClass* fbIntf = fbIntfClass::getInstance();
     fbIntf->mUtil->decodeTimeTz(fbIntf->mStatus, &isc_tm, &h, &m, &s, &frac,
                                 sizeof(tzBuf), tzBuf);
-
+                                */
     tm.SetTime(tzMode, h, m, s, frac, isc_tm.time_zone, tzBuf);
 }
 
@@ -235,10 +235,10 @@ void decodeTimestampTz(IBPP::Timestamp& ts, const ISC_TIMESTAMP_TZ& isc_ts)
     unsigned y, m, d;
     char tzBuf[FB_MAX_TIME_ZONE_NAME_LENGTH];
 
-    fbIntfClass* fbIntf = fbIntfClass::getInstance();
+    /*fbIntfClass* fbIntf = fbIntfClass::getInstance();
     fbIntf->mUtil->decodeTimeStampTz(fbIntf->mStatus, &isc_ts, &y, &m, &d, &h, &n, &s, &frac,
                                      sizeof(tzBuf), tzBuf);
-
+                                     */
     ts.Clear();
     ts.SetDate(y, m, d);
     ts.SetTime(IBPP::Time::tmTimezone, h, n, s, frac, isc_ts.time_zone, tzBuf);

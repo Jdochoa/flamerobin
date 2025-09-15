@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2004-2022 The FlameRobin Development Team
+  Copyright (c) 2004-2025 The FlameRobin Development Team
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -141,6 +141,7 @@ typedef std::vector<MetadataItemPtr> MetadataItemPtrs;
 template <class T>
 class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
+typedef std::vector<MetadataCollectionPtr> MetadataCollectionPtrs;
 
 class Method;
 typedef std::shared_ptr<Method> MethodPtr;

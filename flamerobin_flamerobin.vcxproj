@@ -389,7 +389,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;__WXDEBUG__;_WINDOWS;__WINDOWS__;WINVER=0X0400;WINVER=0x500;__WIN32__;__WIN95__;STRICT;__WXMSW__;wxUSE_GUI=1;wxUSE_REGEX=1;wxUSE_UNICODE=1;WIN32_LEAN_AND_MEAN;IBPP_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -1079,6 +1079,8 @@
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MasterPassword.cpp" />
+    <ClCompile Include="src\metadata\11_0\User11_0.cpp" />
+    <ClCompile Include="src\metadata\12_0\User12_0.cpp" />
     <ClCompile Include="src\metadata\CharacterSet.cpp" />
     <ClCompile Include="src\metadata\Collation.cpp" />
     <ClCompile Include="src\metadata\column.cpp" />
@@ -1087,8 +1089,6 @@
     <ClCompile Include="src\metadata\database.cpp" />
     <ClCompile Include="src\metadata\domain.cpp" />
     <ClCompile Include="src\metadata\exception.cpp" />
-    <ClCompile Include="src\metadata\FB20\User20.cpp" />
-    <ClCompile Include="src\metadata\FB30\User30.cpp" />
     <ClCompile Include="src\metadata\function.cpp" />
     <ClCompile Include="src\metadata\generator.cpp" />
     <ClCompile Include="src\metadata\Index.cpp" />
@@ -1204,6 +1204,8 @@
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\MasterPassword.h" />
+    <ClInclude Include="src\metadata\11_0\User11_0.h" />
+    <ClInclude Include="src\metadata\12_0\User12_0.h" />
     <ClInclude Include="src\metadata\CharacterSet.h" />
     <ClInclude Include="src\metadata\Collation.h" />
     <ClInclude Include="src\metadata\collection.h" />
@@ -1214,8 +1216,6 @@
     <ClInclude Include="src\metadata\database.h" />
     <ClInclude Include="src\metadata\domain.h" />
     <ClInclude Include="src\metadata\exception.h" />
-    <ClInclude Include="src\metadata\FB20\User20.h" />
-    <ClInclude Include="src\metadata\FB30\User30.h" />
     <ClInclude Include="src\metadata\function.h" />
     <ClInclude Include="src\metadata\generator.h" />
     <ClInclude Include="src\metadata\Index.h" />
