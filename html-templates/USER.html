@@ -7,8 +7,20 @@
 <br>
 <br>
 <font size=+2>{%object_name%}</font>
-<br>{%object_description%} [<a
- href="fr://edit_description?parent_window={%parent_window%}&amp;object_handle={%object_handle%}&amp;object_type=USER&amp;object_name={%object_name%}">edit</a>]|
+<br><br>
+<table cellspacing=1 cellpadding=2 border=0 bgcolor=black>
+  <tbody>
+    <tr bgcolor="navy">
+      <td nowrap><b><font color=white>Key</font></b></td>
+      <td nowrap><b><font color=white>Value</font></b></td>
+    </tr>
+    {%foreach:attribute::input:
+    <tr bgcolor="{%alternate:#DDDDFF:#CCCCFF%}">
+      <td nowrap valign="top">{%object_name%}</td>
+      <td nowrap valign="top">{%keyinfo%}</td>
+    </tr>%}
+  </tbody>
+</table>
 <br><br>
 <table cellspacing=1 cellpadding=3 border=0 width="98%" bgcolor="black">
 <tr><td bgcolor="navy"><font color=white><b>User info</b>[<a
