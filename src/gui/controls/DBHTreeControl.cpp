@@ -243,6 +243,8 @@ DBHTreeImageList::DBHTreeImageList()
     addImage(ART_UDFs);
     addImage(ART_User);
     addImage(ART_Users);
+    addImage(ART_UserAttribute);
+    addImage(ART_UserAttributes);
     addImage(ART_View);
     addImage(ART_Views);
 }
@@ -598,14 +600,14 @@ void DBHTreeItemVisitor::visitUsers(Users& users)
 
 void DBHTreeItemVisitor::visitUserAttribute(UserAttribute& userAttribute)
 {
-    setNodeProperties(&userAttribute, ART_User);
+    setNodeProperties(&userAttribute, ART_UserAttribute);
     nodeTextM = userAttribute.getName_() + " = ";
     nodeTextM << userAttribute.getValue();
 }
 
 void DBHTreeItemVisitor::visutUserAttributes(UserAttributes& userAttributes)
 {
-    setNodeProperties(&userAttributes, ART_Users);
+    setNodeProperties(&userAttributes, ART_UserAttributes);
 }
 
 void DBHTreeItemVisitor::visitGenerator(Generator& generator)

@@ -91,6 +91,8 @@
 #define ART_UDFs                    wxART_MAKE_ART_ID(ART_UDFs)
 #define ART_User                    wxART_MAKE_ART_ID(ART_User)
 #define ART_Users                   wxART_MAKE_ART_ID(ART_Users)
+#define ART_UserAttribute           wxART_MAKE_ART_ID(ART_UserAttribute)
+#define ART_UserAttributes          wxART_MAKE_ART_ID(ART_UserAttributes)
 #define ART_View                    wxART_MAKE_ART_ID(ART_View)
 #define ART_Views                   wxART_MAKE_ART_ID(ART_Views)
 

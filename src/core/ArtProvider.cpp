@@ -129,6 +129,8 @@
 #include "UDFs.xpm"
 #include "user.xpm"
 #include "users.xpm"
+#include "userattribute.xpm"
+#include "userattributes.xpm"
 #include "view.xpm"
 
 wxBitmap bitmapFromEmbeddedPNG(const unsigned char* data, size_t len)
@@ -339,6 +341,10 @@ wxBitmap ArtProvider::CreateBitmap(const wxArtID& id,
             return wxBitmap(user_xpm);
         if (id == ART_Users)
             return wxBitmap(users_xpm);
+        if (id == ART_UserAttribute)
+            return wxBitmap(userattribute_xpm);
+        if (id == ART_UserAttributes)
+            return wxBitmap(userattributes_xpm);
         if (id == ART_View)
             return wxBitmap(view_xpm);
         if (id == ART_Views)
