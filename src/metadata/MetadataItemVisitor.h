@@ -90,6 +90,8 @@ public:
     virtual void visitUDFs(UDFs& functions);
     virtual void visitUser(User& user);
     virtual void visitUsers(Users& users);
+    virtual void visitUserAttribute(UserAttribute& userAttribute);
+    virtual void visutUserAttributes(UserAttributes& userAttributes);
     virtual void visitUniqueConstraint(UniqueConstraint& unq);
     virtual void visitView(View& view);
     virtual void visitViews(Views& views);

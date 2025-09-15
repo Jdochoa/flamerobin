@@ -34,7 +34,7 @@
 
 
 class UserAttribute : public MetadataItem
-    , public std::enable_shared_from_this<UserAttribute>
+    ,public std::enable_shared_from_this<UserAttribute>
 {
 private:
     wxString valueM;
@@ -52,8 +52,9 @@ public:
     void setValue(const wxString& value);
     void setPlugin(const wxString& plugin);
 
-    //virtual const wxString getTypeName() const;
-    //virtual void acceptVisitor(MetadataItemVisitor* visitor);
+    virtual const wxString getTypeName() const { return "USERATTIBUTES"; };
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+;
 };
 
 
@@ -69,17 +70,18 @@ private:
     //void loadAttributes(ProgressIndicator* progressIndicator);
 protected:
     virtual void loadProperties();
-
+    
     virtual void loadChildren();
     virtual void lockChildren();
     virtual void unlockChildren();
+
+    virtual wxString getAttributes();
 
 
 public:
     User12_0(DatabasePtr database, const wxString& name);
 
-    virtual wxString getAlterSqlStatement();
-
+ 
     wxString getPlugin() const;
     bool getActive() const;
     bool getAdmin() const;
@@ -89,7 +91,8 @@ public:
     void setAdmin(const bool& value);
 
 
-    bool getChildren(std::vector<MetadataItem*>& temp);
+    virtual bool getChildren(std::vector<MetadataItem*>& temp);
+    virtual size_t getChildrenCount() const;
 
     UserAttributePtrs::iterator begin();
     UserAttributePtrs::iterator end();
@@ -97,22 +100,33 @@ public:
     UserAttributePtrs::const_iterator end() const;
 
     // MetadataItem interface
-    //virtual wxString getTypeName() const { return "User"; }
-    //virtual void acceptVisitor(MetadataItemVisitor* visitor);
+    virtual const wxString getTypeName() const { return "USER"; };
+    virtual void acceptVisitor(MetadataItemVisitor* visitor) { visitor->visitUser(*this); };
     virtual wxString getSource();
+    virtual wxString getAlterSqlStatement();
+    virtual wxString getCreateSqlStatement();
+
 
 };
 
 class UserAttributes : public MetadataCollection<UserAttribute>
 {
+private:
+    wxString userNameM;
+    wxString pluginM;
 public:
     UserAttributes(DatabasePtr database);
     virtual void load(ProgressIndicator* progressIndicator);
 
-    /*virtual ItemType newItem(const wxString& name) {
+    virtual ItemType newItem(const wxString& name) {
         ItemType item(new UserAttribute(getDatabase(), name));
         return item;
-    }*/
+    }
+    
+    void setUserName(const wxString& userName);
+    void setPlugin(const wxString& plugin);
+    wxString getUserName() const;
+    wxString getPlugin() const;
 };
 
 

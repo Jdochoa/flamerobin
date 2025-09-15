@@ -132,6 +132,16 @@ void MetadataItemVisitor::visitUsers(Users&)
     defaultAction();
 }
 
+void MetadataItemVisitor::visitUserAttribute(UserAttribute&)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visutUserAttributes(UserAttributes&)
+{
+    defaultAction();
+}
+
 void MetadataItemVisitor::visitGenerator(Generator&)
 {
     defaultAction();

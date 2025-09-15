@@ -50,6 +50,7 @@
 #include "metadata/role.h"
 #include "metadata/table.h"
 #include "metadata/view.h"
+#include "metadata/12_0/User12_0.h"
 
 // forward declaration to keep compilers happy
 void addIndex(std::vector<Index> *ix, wxString& sql, ColumnConstraint *cc);
@@ -217,6 +218,8 @@ void CreateDDLVisitor::visitDatabase(Database& d)
 
     try
     {
+        preSqlM << "/********************* USERS **********************/\n\n";
+        iterateit<UsersPtr, User>(this, d.getUsers(), progressIndicatorM);
 
         preSqlM << "/********************* COLLATES **********************/\n\n";
         iterateit<CollationsPtr, Collation>(this, d.getCollations(), progressIndicatorM);
@@ -229,26 +232,21 @@ void CreateDDLVisitor::visitDatabase(Database& d)
         
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
             preSqlM << "/********************* FUNCTIONS ***********************/\n\n";
-            iterateit<FunctionSQLsPtr, FunctionSQL>(this, d.getFunctionSQLs(),
-                progressIndicatorM);
+            iterateit<FunctionSQLsPtr, FunctionSQL>(this, d.getFunctionSQLs(), progressIndicatorM);
         }
 
         preSqlM << "/****************** SEQUENCES ********************/\n\n";
-        iterateit<GeneratorsPtr, Generator>(this, d.getGenerators(),
-            progressIndicatorM);
+        iterateit<GeneratorsPtr, Generator>(this, d.getGenerators(), progressIndicatorM);
 
         preSqlM << "/******************** DOMAINS *********************/\n\n";
-        iterateit<DomainsPtr, Domain>(this, d.getDomains(),
-            progressIndicatorM);
+        iterateit<DomainsPtr, Domain>(this, d.getDomains(), progressIndicatorM);
 
         preSqlM << "/******************* PROCEDURES ******************/\n\n";
-        iterateit<ProceduresPtr, Procedure>(this, d.getProcedures(),
-            progressIndicatorM);
+        iterateit<ProceduresPtr, Procedure>(this, d.getProcedures(), progressIndicatorM);
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
             preSqlM << "/******************* PACKAGES ******************/\n\n";
-            iterateit<PackagesPtr, Package>(this, d.getPackages(),
-                progressIndicatorM);
+            iterateit<PackagesPtr, Package>(this, d.getPackages(), progressIndicatorM);
         }
       
         preSqlM << "/******************** TABLES **********************/\n\n";
@@ -263,22 +261,18 @@ void CreateDDLVisitor::visitDatabase(Database& d)
         iterateit<ViewsPtr, View>(this, d.getViews(), progressIndicatorM);
 
         preSqlM << "/******************* EXCEPTIONS *******************/\n\n";
-        iterateit<ExceptionsPtr, Exception>(this, d.getExceptions(),
-            progressIndicatorM);
+        iterateit<ExceptionsPtr, Exception>(this, d.getExceptions(), progressIndicatorM);
 
         preSqlM << "/******************** TRIGGERS ********************/\n\n";
-        iterateit<DMLTriggersPtr, DMLTrigger>(this, d.getDMLTriggers(),
-            progressIndicatorM);
+        iterateit<DMLTriggersPtr, DMLTrigger>(this, d.getDMLTriggers(), progressIndicatorM);
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(11.1)) {
             preSqlM << "/******************** DB TRIGGERS ********************/\n\n";
-            iterateit<DBTriggersPtr, DBTrigger>(this, d.getDBTriggers(),
-                progressIndicatorM);
+            iterateit<DBTriggersPtr, DBTrigger>(this, d.getDBTriggers(), progressIndicatorM);
         }
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
             preSqlM << "/******************** DDL TRIGGERS ********************/\n\n";
-            iterateit<DDLTriggersPtr, DDLTrigger>(this, d.getDDLTriggers(),
-                progressIndicatorM);
+            iterateit<DDLTriggersPtr, DDLTrigger>(this, d.getDDLTriggers(), progressIndicatorM);
         }
     }
     catch (CancelProgressException&)
@@ -858,6 +852,16 @@ void CreateDDLVisitor::visitUniqueConstraint(UniqueConstraint& unq)
     sqlM = "ALTER TABLE " + unq.getTable()->getQuotedName()
         + " ADD" + sql + ";\n";
 }
+void CreateDDLVisitor::visitUser(User& user) 
+{
+    User12_0* u = dynamic_cast<User12_0*>(&user);
+    if (u) {
+        wxString sql = u->getCreateSqlStatement();
+
+        preSqlM << sql;
+        sqlM = sql;
+    };
+}
 
 void CreateDDLVisitor::visitView(View& v)
 {
@@ -887,6 +891,3 @@ void CreateDDLVisitor::visitView(View& v)
     sqlM += preSqlM + "\n" + postSqlM + grantSqlM;
 }
 
-void CreateDDLVisitor::visitCharacterSet(CharacterSet&  /*characterset*/)
-{
-}

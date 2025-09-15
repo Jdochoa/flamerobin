@@ -271,7 +271,7 @@ void EventWatcherFrame::updateMonitoringActive()
     updateControls();
 }
 
-void EventWatcherFrame::ibppEventHandler(IBPP::Events events,
+void EventWatcherFrame::ibppEventHandler(IBPP::Events /*events*/,
     const std::string& name, int count)
 {
     eventlog_received->logEvent(name, count);

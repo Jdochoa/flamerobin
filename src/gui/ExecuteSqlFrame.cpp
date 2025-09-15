@@ -2395,7 +2395,7 @@ bool ExecuteSqlFrame::execute(wxString sql, const wxString& terminator,
     while (tk.nextToken());
     if (!hasStatements)
     {
-        log(_("Parsed statement: " + sql), ttSql);
+        log(_("Parsed statement: ") + sql, ttSql);
         log(_("Empty statement detected, bailing out..."));
         return true;
     }
@@ -2492,7 +2492,7 @@ bool ExecuteSqlFrame::execute(wxString sql, const wxString& terminator,
         }
         grid_data->ClearGrid(); // statement object will be invalidated, so clear the grid
         statementM = IBPP::StatementFactory(databaseM->getIBPPDatabase(), transactionM);
-        log(_("Preparing statement: " + sql), ttSql);
+        log(_("Preparing statement: ") + sql, ttSql);
         sae.scroll();
         {
             wxStopWatch sw;
@@ -3156,7 +3156,7 @@ void ExecuteSqlFrame::highlightOccurrences(const wxString& word)
     }
 }
 
-void ExecuteSqlFrame::OnTextSelected(wxStyledTextEvent& event)
+void ExecuteSqlFrame::OnTextSelected(wxStyledTextEvent& )
 {
     int currentPos = styled_text_ctrl_sql->GetCurrentPos();
     int wordStartPos = styled_text_ctrl_sql->WordStartPosition(currentPos, true);

@@ -33,6 +33,7 @@ public:
     HtmlHeaderMetadataItemVisitor(std::vector<wxString>& titles);
     virtual ~HtmlHeaderMetadataItemVisitor();
 
+    virtual void visitCollation(Collation& collation);
     virtual void visitDatabase(Database& database);
     virtual void visitDBTrigger(DBTrigger& trigger);
     virtual void visitDDLTrigger(DDLTrigger& trigger);
@@ -48,8 +49,8 @@ public:
     virtual void visitTable(Table& table);
     virtual void visitGTTable(GTTable& table);
     virtual void visitUDF(UDF & function);
+    virtual void visitUser(User& user);
     virtual void visitView(View& view);
-    virtual void visitCollation(Collation& collation);
 protected:
     virtual void defaultAction();
 private:

@@ -158,6 +158,7 @@ public:
     // returns complete DROP SQL statement
     virtual wxString getDropSqlStatement() const;
     virtual wxString getAlterSqlStatement();
+    virtual wxString getCreateSqlStatement();
 
     // getters/setters
     virtual MetadataItem* getParent() const;

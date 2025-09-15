@@ -766,6 +766,11 @@ wxString MetadataItem::getAlterSqlStatement()
     return wxString();
 }
 
+wxString MetadataItem::getCreateSqlStatement()
+{
+    return wxString();
+}
+
 void MetadataItem::acceptVisitor(MetadataItemVisitor* visitor)
 {
     visitor->visitMetadataItem(*this);

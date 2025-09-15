@@ -144,7 +144,7 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
     {
         wxString sep;
         tp->internalProcessTemplateText(sep, cmdParams[1], object);
-        
+
         // {%foreach:column:<separator>:<text>%}
         // If the current object is a relation, processes <text> for each column.
         if (cmdParams[0] == "column")
@@ -241,7 +241,7 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
         else if ((cmdParams[0] == "trigger") && (cmdParams.Count() >= 4))
         {
             std::vector<Trigger*> triggers;
-            
+
             Relation* r = dynamic_cast<Relation*>(object);
             if (r)
             {
@@ -290,7 +290,7 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
         // processes <text> for each privilege.
         else if (cmdParams[0] == "privilege")
         {
-            
+
             Relation* rel = dynamic_cast<Relation*>(object);
             Procedure* proc = dynamic_cast<Procedure*>(object);
             Role* role = dynamic_cast<Role*>(object);
@@ -375,8 +375,8 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
             bool firstItem = true;
             for (std::vector<Dependency>::iterator it = deps.begin(); it != deps.end(); ++it)
             {
-                    Local::foreachIteration(firstItem, tp, processedText, sep,
-                        cmdParams.from(2), &(*it));
+                Local::foreachIteration(firstItem, tp, processedText, sep,
+                    cmdParams.from(2), &(*it));
             }
         }
 
@@ -465,6 +465,27 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
                 Local::foreachIteration(firstItem, tp, processedText, sep,
                     cmdParams.from(2), (*it).get());
             }
+        }
+        // {%foreach:attribute:<separator>:<text>%}
+        // If the current object is a user, processes
+        // the specified text once for each defined user attribute,
+        // switching each time the current object to the nth user.
+        else if (cmdParams[0] == "attribute") 
+        {
+            User* u = dynamic_cast<User*>(object);
+            if (u) {
+                u->ensureChildrenLoaded();
+                std::vector<MetadataItem*> attrs;
+                if (u->getChildren(attrs)) {
+                    bool firstItem = true;
+                    for (std::vector<MetadataItem*>::iterator attr = attrs.begin(); attr != attrs.end(); ++attr)
+                    {
+                        Local::foreachIteration(firstItem, tp, processedText, sep,
+                            cmdParams.from(2), (*attr));
+                    }
+                }
+            }else
+                return;
         }
         // add more collections here.
         else
@@ -947,18 +968,14 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
         }
     }
 
-    // {%userinfo:property%}
+    // {%userinfo:source%}
     // If the current object  is a user, expands to various user properties.
     else if (cmdName == "userinfo" && !cmdParams.IsEmpty())
-    {
-
-        
+    {      
         User* u = dynamic_cast<User*>(object);
 
         //if (u->getDatabase()->getInfo().getODSVersionIsHigherOrEqualTo(12))
-            
 
-        
         if (!u)
             return;
 
@@ -1021,6 +1038,15 @@ void MetadataTemplateCmdHandler::handleTemplateCmd(TemplateProcessor *tp,
             processedText += tp->escapeChars(c->getSource(), false);
 
     }
+    else if ((cmdName == "keyinfo"))
+    {
+        UserAttribute* attr = dynamic_cast<UserAttribute*>(object);
+        if (!attr)
+            return;
+        processedText += tp->escapeChars(attr->getValue(), false);
+    }
+    else
+        return;
 
 }
 

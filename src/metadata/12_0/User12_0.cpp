@@ -58,8 +58,6 @@ void Users12_0::loadChildren()
 
 void User12_0::loadProperties()
 {
-
-
     DatabasePtr db = getDatabase();
 
     MetadataLoader* loader = db->getMetadataLoader();
@@ -136,12 +134,21 @@ void User12_0::loadProperties()
 
 void User12_0::loadChildren()
 {
+    ensurePropertiesLoaded();
+
+    setChildrenLoaded(false);
+
+    userAttibutesM->setUserName(getName_());
+    userAttibutesM->setPlugin(getPlugin());
+
     userAttibutesM->load(0);
+
+    setChildrenLoaded(true);
 }
 
 void User12_0::lockChildren()
 {
-    //userAttibutesM.lockSubject();
+    userAttibutesM->lockSubject();
     //std::for_each(userAttibutesM.begin(), userAttibutesM.end(),
     //    std::mem_fn(&UserAttribute::lockSubject));
 
@@ -149,30 +156,16 @@ void User12_0::lockChildren()
 
 void User12_0::unlockChildren()
 { 
-    //userAttibutesM->unlockSubject();
+    userAttibutesM->unlockSubject();
     //std::for_each(userAttibutesM.begin(), userAttibutesM.end(),
     //    std::mem_fn(&UserAttribute::unlockSubject));
 
 }
 
-
 User12_0::User12_0(DatabasePtr database, const wxString& name)
     :User(database, name)
 {
-    //userAttibutesM.reset(new UserAttributes(getDatabase()));
-}
-
-wxString User12_0::getAlterSqlStatement()
-{
-    ensurePropertiesLoaded();
-    wxString sql = "ALTER USER " + getName_() + " \n" +
-        "PASSWORD '' \n"
-        "FIRSTNAME '" + getFirstName() + "' \n"
-        "MIDDLENAME '" + getMiddleName() + "' \n"
-        "LASTNAME '" + getLastName() + "' \n"
-        "{GRANT | REVOKE} ADMIN ROLE \n"
-        ;
-    return sql;
+    userAttibutesM.reset(new UserAttributes(getDatabase()));
 }
 
 wxString User12_0::getPlugin() const
@@ -193,11 +186,50 @@ bool User12_0::getAdmin() const
 wxString User12_0::getSource()
 {
     wxString sql = User::getSource();
-    sql = sql +
-        (getActive() ? "ACTIVE" : "INACTIVE") + " \n" +
-        (getAdmin() ? "ADMIN ROLE\n": "") +
-        "USING PLUGIN " + getPlugin()+ " \n"
+    sql = sql
+        << (getActive() ? "ACTIVE" : "INACTIVE") << " \n"
+        << (getAdmin() ? "GRANT ADMIN ROLE \n" : "")
+        << (!getPlugin().IsEmpty() ? "USING PLUGIN " + getPlugin() : "")
         ;
+    
+    return sql;
+}
+
+wxString User12_0::getAlterSqlStatement()
+{
+    return  "ALTER USER "
+        + getQuotedName() + " \n"
+        + getSource() + " \n"
+        + getAttributes() + " \n"
+        + ";\n";
+}
+
+wxString User12_0::getCreateSqlStatement()
+{
+    return  "CREATE USER "
+        + getQuotedName() + " \n"
+        + getSource() + " \n"
+        + getAttributes() + " \n"
+        + ";\n";
+}
+
+wxString User12_0::getAttributes()
+{
+    wxString sql;
+
+    ensureChildrenLoaded();
+    wxString attr = "";
+    for (UserAttributePtrs::iterator it = begin(); it != end(); ++it)
+    {
+        if (!attr.IsEmpty())
+            attr << ", ";
+        attr << (*it).get()->getName_() << " = '" << (*it).get()->getValue();
+    }
+
+    if (!attr.IsEmpty()) {
+        sql << "TAGS ( " << attr << ")" << " \n";
+    }
+
     return sql;
 }
 
@@ -205,12 +237,18 @@ bool User12_0::getChildren(std::vector<MetadataItem*>& temp)
 {
     if (userAttibutesM->empty())
         return false;
-    //temp.push_back(userAttibutesM.get());
+    userAttibutesM->getChildren(temp);
+    //temp.push_back(userAttibutesM->get());
     //std::transform(userAttibutesM.begin(), userAttibutesM.end(),
     //    std::back_inserter(temp), std::mem_fn(&UserAttributePtr::get));
 
     return !userAttibutesM->empty();
     
+}
+
+size_t User12_0::getChildrenCount() const
+{
+     return userAttibutesM->getChildrenCount();
 }
 
 void User12_0::setPlugin(const wxString& plugin)
@@ -345,7 +383,68 @@ UserAttributes::UserAttributes(DatabasePtr database)
 void UserAttributes::load(ProgressIndicator* progressIndicator)
 {
     DatabasePtr db = getDatabase();
-    wxString stmt = "select sec$user_name from sec$users order by 1 ";
-    setItems(db->loadIdentifiers(stmt, progressIndicator));
+
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(
+        "Select  SEC$KEY, SEC$VALUE "
+        "From SEC$USER_ATTRIBUTES "
+        "Where  SEC$USER_NAME = ? "
+        "And SEC$PLUGIN = ? "
+    );
+    st1->Set(1, wx2std(getUserName(), converter));
+    st1->Set(2, wx2std(getPlugin(), converter));
+
+    st1->Execute();
+    UserAttributePtrs attributes;
+    while (st1->Fetch())
+    {
+        std::string s;
+        wxString key;
+        if (!st1->IsNull(1)) {
+            st1->Get(1, s);
+            key = std2wxIdentifier(s, converter);
+        }
+        wxString value;
+        if (!st1->IsNull(2)) {
+            st1->Get(2, s);
+            value = std2wxIdentifier(s, converter);
+        }
+
+        
+        UserAttributePtr attr;// = findParameter(param_name);
+        attr.reset(new UserAttribute(this, key));
+        initializeLockCount(attr, getLockCount());
+        attributes.push_back(attr);
+        attr->setValue(value);
+    }
+    setItems(attributes);
+    //setItems(db->loadIdentifiers(stmt, progressIndicator));
 }
 
+void UserAttributes::setUserName(const wxString& userName)
+{
+    userNameM = userName;
+}
+
+void UserAttributes::setPlugin(const wxString& plugin)
+{
+    pluginM = plugin;
+}
+
+wxString UserAttributes::getUserName() const
+{
+    return userNameM;
+}
+
+wxString UserAttributes::getPlugin() const
+{
+    return pluginM;
+}
+
+void UserAttribute::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    visitor->visitUserAttribute(*this);
+}

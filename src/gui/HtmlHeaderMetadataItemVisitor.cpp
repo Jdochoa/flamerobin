@@ -88,6 +88,14 @@ void HtmlHeaderMetadataItemVisitor::visitUDF(UDF& /*function*/)
     addDDL();
 }
 
+void HtmlHeaderMetadataItemVisitor::visitUser(User& /*user*/)
+{
+    emptyTitles();
+    addSummary();
+    addPrivileges();
+    addDDL();
+}
+
 void HtmlHeaderMetadataItemVisitor::visitGenerator(Generator& /*generator*/)
 {
     emptyTitles();

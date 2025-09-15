@@ -62,8 +62,8 @@ void Package::loadChildren()
   
     DatabasePtr db = getDatabase();
     MetadataLoader* loader = db->getMetadataLoader();
-    // first start a transaction for metadata loading, then lock the procedure
-    // when objects go out of scope and are destroyed, procedure will be
+    // first start a transaction for metadata loading, then lock the package
+    // when objects go out of scope and are destroyed, package will be
     // unlocked before the transaction is committed - any update() calls on
     // observers can possibly use the same transaction
     // when objects go out of scope and are destroyed, object will be unlocked

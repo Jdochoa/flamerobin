@@ -65,6 +65,7 @@
 #include "metadata/trigger.h"
 #include "metadata/view.h"
 #include "sql/SqlTokenizer.h"
+#include "metadata/12_0/User12_0.h"
 
 // DBHTreeConfigCache: class to cache config data for tree control behaviour
 class DBHTreeConfigCache: public ConfigCache, public Subject
@@ -346,6 +347,8 @@ public:
     virtual void visitUDFs(UDFs& functions);
     virtual void visitUser(User& user);
     virtual void visitUsers(Users& users);
+    virtual void visitUserAttribute(UserAttribute& userAttribute);
+    virtual void visutUserAttributes(UserAttributes& userAttributes);
     virtual void visitView(View& view);
     virtual void visitViews(Views& views);
     virtual void visitIndex(Index& index);
@@ -583,12 +586,26 @@ void DBHTreeItemVisitor::visitUDFs(UDFs& functions)
 
 void DBHTreeItemVisitor::visitUser(User& user)
 {
+    user.ensureChildrenLoaded();
     setNodeProperties(&user, ART_User);
+    nodeTextM = user.getName_();
 }
 
 void DBHTreeItemVisitor::visitUsers(Users& users)
 {
     setNodeProperties(&users, ART_Users);
+}
+
+void DBHTreeItemVisitor::visitUserAttribute(UserAttribute& userAttribute)
+{
+    setNodeProperties(&userAttribute, ART_User);
+    nodeTextM = userAttribute.getName_() + " = ";
+    nodeTextM << userAttribute.getValue();
+}
+
+void DBHTreeItemVisitor::visutUserAttributes(UserAttributes& userAttributes)
+{
+    setNodeProperties(&userAttributes, ART_Users);
 }
 
 void DBHTreeItemVisitor::visitGenerator(Generator& generator)
