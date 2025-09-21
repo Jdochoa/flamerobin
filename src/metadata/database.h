@@ -294,8 +294,6 @@ public:
     wxArrayString loadIdentifiers(const wxString& loadStatement,
         ProgressIndicator* progressIndicator = 0);
 
-    wxString loadDomainNameForColumn(const wxString& table,
-        const wxString& field);
     DomainPtr getDomain(const wxString& name);
 
     void loadGeneratorValues();

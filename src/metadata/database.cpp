@@ -380,27 +380,6 @@ void Database::getIdentifiers(std::vector<Identifier>& temp)
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
 }
 
-// This could be moved to Column class
-wxString Database::loadDomainNameForColumn(const wxString& table,
-    const wxString& field)
-{
-    MetadataLoader* loader = getMetadataLoader();
-    MetadataLoaderTransaction tr(loader);
-    wxMBConv* converter = getCharsetConverter();
-
-    IBPP::Statement& st1 = loader->getStatement(
-        "select rdb$field_source from rdb$relation_fields"
-        " where rdb$relation_name = ? and rdb$field_name = ?"
-    );
-    st1->Set(1, wx2std(table, converter));
-    st1->Set(2, wx2std(field, converter));
-    st1->Execute();
-    st1->Fetch();
-    std::string domain;
-    st1->Get(1, domain);
-    return std2wxIdentifier(domain, converter);
-}
-
 void Database::getDatabaseTriggers(std::vector<Trigger *>& list)
 {
     std::transform(DBTriggersM->begin(), DBTriggersM->end(),
@@ -959,8 +938,17 @@ void Database::parseCommitedSql(const SqlStatement& stm)
     {
         if (stm.isDatatype())
         {
-            wxString domainName(loadDomainNameForColumn(stm.getName(),
-                stm.getFieldName()));
+            
+            /*wxString domainName(loadDomainNameForColumn(stm.getName(),
+                stm.getFieldName()));*/
+            
+            Relation* rel = findRelation(stm.getName());
+            if (!rel)
+                return; 
+            rel->ensureChildrenLoaded();
+
+            wxString domainName(rel->findColumn(stm.getFieldName())->getDomain()->getName_());
+
             if (MetadataItem::hasSystemPrefix(domainName))
             {
                 DomainPtr d = sysDomainsM->findByName(domainName);
