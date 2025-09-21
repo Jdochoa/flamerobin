@@ -171,9 +171,10 @@ list(APPEND SOURCE_LIST
         ${SOURCEDIR}/metadata/table.cpp
         ${SOURCEDIR}/metadata/trigger.cpp
         ${SOURCEDIR}/metadata/User.cpp
-        ${SOURCEDIR}/metadata/FB20/User20.cpp
-        ${SOURCEDIR}/metadata/FB30/User30.cpp
         ${SOURCEDIR}/metadata/view.cpp
+        ${SOURCEDIR}/metadata/11_0/User11_0.cpp
+        ${SOURCEDIR}/metadata/12_0/User12_0.cpp
+        ${SOURCEDIR}/metadata/14_0/schema.cpp
         ${SOURCEDIR}/sql/Identifier.cpp
         ${SOURCEDIR}/sql/IncompleteStatement.cpp
         ${SOURCEDIR}/sql/MultiStatement.cpp
@@ -296,9 +297,10 @@ list(APPEND HEADER_LIST
         ${SOURCEDIR}/metadata/table.h
         ${SOURCEDIR}/metadata/trigger.h
         ${SOURCEDIR}/metadata/User.h
-        ${SOURCEDIR}/metadata/FB20/User20.h
-        ${SOURCEDIR}/metadata/FB30/User30.h
         ${SOURCEDIR}/metadata/view.h
+        ${SOURCEDIR}/metadata/11_0/User11_0.h
+        ${SOURCEDIR}/metadata/12_0/User12_0.h
+        ${SOURCEDIR}/metadata/14_0/schema.h
         ${SOURCEDIR}/sql/Identifier.h
         ${SOURCEDIR}/sql/IncompleteStatement.h
         ${SOURCEDIR}/sql/MultiStatement.h
