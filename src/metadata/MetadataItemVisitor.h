@@ -30,7 +30,7 @@
 #include "core/Visitor.h"
 #include "metadata/MetadataClasses.h"
 
-class MetadataItemVisitor: public Visitor
+class MetadataItemVisitor : public Visitor
 {
 public:
     MetadataItemVisitor();
@@ -74,6 +74,8 @@ public:
     virtual void visitRole(Role& role);
     virtual void visitRoles(Roles& roles);
     virtual void visitRoot(Root& root);
+    virtual void visitSchema(Schema& schema);
+    virtual void visitSchemas(Schemas& schemas);    
     virtual void visitServer(Server& server);
     virtual void visitSysIndices(SysIndices& indices);
     virtual void visitUsrIndices(UsrIndices& indices);

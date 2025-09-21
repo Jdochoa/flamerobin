@@ -37,7 +37,7 @@ private:
     DatabaseWeakPtr databaseM;
 protected:
     MetadataCollectionBase(NodeType type, DatabasePtr database,
-            const wxString& name)
+        const wxString& name)
         : MetadataItem(type, database.get(), name, -1), databaseM(database)
     {
     }
@@ -74,6 +74,21 @@ public:
     }
 
     virtual bool isSystem() const { return false; }
+
+    virtual void load(ProgressIndicator*)
+    {
+    }
+
+    virtual bool getChildren(std::vector<MetadataItem*>& temp)
+    {
+        return false;
+    }
+
+    virtual size_t getChildrenCount() const
+    {
+        return 0;
+    }
+
 };
 
 template <class T>
@@ -84,6 +99,7 @@ public:
     typedef typename std::vector<ItemType> CollectionType;
     typedef typename CollectionType::iterator iterator;
     typedef typename CollectionType::const_iterator const_iterator;
+
 private:
     CollectionType itemsM;
 

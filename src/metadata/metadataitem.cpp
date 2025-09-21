@@ -65,7 +65,7 @@ ObjectWithHandle<MetadataItem>::Handle ObjectWithHandle<MetadataItem>::nextHandl
 
 MetadataItem::MetadataItem()
     : Subject(), typeM(ntUnknown), parentM(0), metadataIdM(-1), childrenLoadedM(lsNotLoaded),
-        descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded)
+    descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded), isSystemM(false)
 {
 }
 
@@ -75,7 +75,7 @@ MetadataItem::MetadataItem(NodeType type, MetadataItem* parent,
         typeM(type), parentM(parent), identifierM(name, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3),
         metadataIdM(id),
         childrenLoadedM(lsNotLoaded), descriptionLoadedM(lsNotLoaded),
-        propertiesLoadedM(lsNotLoaded)
+    propertiesLoadedM(lsNotLoaded), isSystemM(false)
 {
 }
 
@@ -744,9 +744,19 @@ void MetadataItem::setMetadataId(int id)
     metadataIdM = id;
 }
 
+void MetadataItem::setIsSystem(bool isSystem)
+{
+    isSystemM = isSystem;
+}
+
+bool MetadataItem::getIsSystem() const
+{
+    return isSystemM;
+}
+
 bool MetadataItem::isSystem() const
 {
-    return hasSystemPrefix(getName_());
+    return hasSystemPrefix(getName_()) || getIsSystem();
 }
 
 /*static*/

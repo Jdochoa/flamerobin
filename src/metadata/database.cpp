@@ -69,6 +69,7 @@
 #include "metadata/User.h"
 #include "metadata/11_0/User11_0.h"
 #include "metadata/12_0/User12_0.h"
+#include "metadata/14_0/schema.h"
 
 #include "sql/SqlStatement.h"
 #include "sql/SqlTokenizer.h"
@@ -1244,6 +1245,8 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
                 usersM.reset(new Users12_0(me));
 
             }
+            schemasM.reset(new Schemas(me));
+
             initializeLockCount(usersM, lockCount);
 
             // first start a transaction for metadata loading, then lock the
@@ -1409,6 +1412,10 @@ void Database::loadCollections(ProgressIndicator* progressIndicator)
     pih.init(_("Users"), collectionCount, 23);
     usersM->load(progressIndicator);
 
+    pih.init(_("Schemas"), collectionCount, 23);
+    schemasM->load(progressIndicator);
+
+
 }
 
 void Database::loadDatabaseInfo()
@@ -1516,6 +1523,7 @@ void Database::setDisconnected()
     characterSetsM.reset();
     collationsM.reset();
     usersM.reset();
+    schemasM.reset();
 
     if (config().get("HideDisconnectedDatabases", false))
         getServer()->notifyObservers();
@@ -1760,6 +1768,7 @@ void Database::getCollections(std::vector<MetadataItem*>& temp, bool system)
     temp.push_back(UDFsM.get());
     temp.push_back(usersM.get());
     temp.push_back(viewsM.get());
+    temp.push_back(schemasM.get());
 
 }
 
@@ -1796,6 +1805,7 @@ void Database::lockChildren()
         characterSetsM->lockSubject();
         collationsM->lockSubject();
         usersM->lockSubject();
+        schemasM->lockSubject();
     }
 }
 
@@ -1829,6 +1839,7 @@ void Database::unlockChildren()
         characterSetsM->unlockSubject();
         collationsM->unlockSubject();
         usersM->unlockSubject();
+        schemasM->unlockSubject();
     }
 }
 

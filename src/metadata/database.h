@@ -201,6 +201,7 @@ private:
     PackagesPtr packagesM;
     ProceduresPtr proceduresM;
     RolesPtr rolesM;
+    SchemasPtr schemasM;
     SysIndicesPtr sysIndicesM;
     SysDomainsPtr sysDomainsM;
     SysPackagesPtr sysPackagesM;

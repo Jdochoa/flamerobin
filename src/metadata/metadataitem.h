@@ -72,6 +72,7 @@ typedef enum { ntUnknown, ntRoot, ntServer, ntDatabase,
     ntCharacterSet, ntChartersets,
     ntSysCollation, ntSysCollations, 
     ntCollation, ntCollations,
+    ntSchema, ntSchemas,
     ntLastType
 } NodeType;
 
@@ -89,6 +90,7 @@ private:
     NodeType typeM;
     Identifier identifierM;
     int metadataIdM;
+    bool isSystemM;
 
     enum LoadState { lsNotLoaded, lsLoadPending, lsLoaded, lsNotAvailable };
     LoadState childrenLoadedM;
@@ -171,6 +173,8 @@ public:
     void setType(NodeType type);
     virtual int getMetadataId();
     virtual void setMetadataId(int id);
+    virtual void setIsSystem(bool isSystem);
+    virtual bool getIsSystem() const;
 
     // returns the name of the data type (f. ex. TABLE)
     virtual const wxString getTypeName() const;

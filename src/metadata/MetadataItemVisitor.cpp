@@ -217,6 +217,16 @@ void MetadataItemVisitor::visitRoot(Root&)
     defaultAction();
 }
 
+void MetadataItemVisitor::visitSchema(Schema& schema)
+{
+    defaultAction();
+}
+
+void MetadataItemVisitor::visitSchemas(Schemas& schemas)
+{
+    defaultAction();
+}
+
 void MetadataItemVisitor::visitServer(Server&)
 {
     defaultAction();

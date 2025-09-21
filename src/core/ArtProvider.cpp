@@ -112,6 +112,8 @@
 #include "redx.xpm"
 #include "role16_png.cpp"
 #include "root.xpm"
+#include "schema.xpm"
+#include "schemas.xpm"
 #include "server.xpm"
 #include "systemindex.xpm"
 #include "systemindices.xpm"
@@ -303,6 +305,10 @@ wxBitmap ArtProvider::CreateBitmap(const wxArtID& id,
             return wxBitmap(root_xpm);
         if (id == ART_Server)
             return wxBitmap(databaseserver_xpm);
+        if (id == ART_Schema)
+            return wxBitmap(schema_xpm);
+        if (id == ART_Schemas)
+            return wxBitmap(schemas_xpm);
         if (id == ART_ShowExecutionPlan)
             return wxBitmap(plan16_xpm);
         if (id == ART_SystemIndex)

@@ -72,6 +72,8 @@
 #define ART_Role                    wxART_MAKE_ART_ID(ART_Role)
 #define ART_Roles                   wxART_MAKE_ART_ID(ART_Roles)
 #define ART_Root                    wxART_MAKE_ART_ID(ART_Root)
+#define ART_Schema                  wxART_MAKE_ART_ID(ART_Schema)
+#define ART_Schemas                 wxART_MAKE_ART_ID(ART_Schemas)
 #define ART_Server                  wxART_MAKE_ART_ID(ART_Server)
 #define ART_SystemIndex             wxART_MAKE_ART_ID(ART_SystemIndex)
 #define ART_SystemIndices           wxART_MAKE_ART_ID(ART_SystemIndices)

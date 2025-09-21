@@ -66,6 +66,7 @@
 #include "metadata/view.h"
 #include "sql/SqlTokenizer.h"
 #include "metadata/12_0/User12_0.h"
+#include "metadata/14_0/schema.h"
 
 // DBHTreeConfigCache: class to cache config data for tree control behaviour
 class DBHTreeConfigCache: public ConfigCache, public Subject
@@ -224,6 +225,8 @@ DBHTreeImageList::DBHTreeImageList()
     addImage(ART_Role);
     addImage(ART_Roles);
     addImage(ART_Root);
+    addImage(ART_Schema);
+    addImage(ART_Schemas);
     addImage(ART_Server);
     addImage(ART_SystemIndex);
     addImage(ART_SystemIndices);
@@ -335,6 +338,8 @@ public:
     virtual void visitServer(Server& server);
     virtual void visitTable(Table& table);
     virtual void visitTables(Tables& tables);
+    virtual void visitSchema(Schema& schema);
+    virtual void visitSchemas(Schemas& schemas);
     virtual void visitSysTable(SysTable& table);
     virtual void visitSysTables(SysTables& tables);
     virtual void visitGTTable(GTTable& table);
@@ -827,6 +832,18 @@ void DBHTreeItemVisitor::visitTable(Table& table)
 void DBHTreeItemVisitor::visitTables(Tables& tables)
 {
     setNodeProperties(&tables, ART_Tables);
+}
+void DBHTreeItemVisitor::visitSchema(Schema& schema)
+{
+    schema.ensureChildrenLoaded();
+    setNodeProperties(&schema, ART_Schema);
+    nodeTextM = schema.getName_();
+    
+}
+
+void DBHTreeItemVisitor::visitSchemas(Schemas& Schemas)
+{
+    setNodeProperties(&Schemas, ART_Schemas);
 }
 
 void DBHTreeItemVisitor::visitSysTable(SysTable& table)

@@ -138,10 +138,14 @@ typedef std::shared_ptr<Mappings> MappingsPtr;
 class MetadataItem;
 typedef std::shared_ptr<MetadataItem> MetadataItemPtr;
 typedef std::vector<MetadataItemPtr> MetadataItemPtrs;
+
+class MetadataCollectionBase;
+typedef std::shared_ptr<MetadataCollectionBase> MetadataCollectionBasePtr;
+typedef std::vector<MetadataCollectionBasePtr> MetadataCollectionBasePtrs;
 template <class T>
 class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
-typedef std::vector<MetadataCollectionPtr> MetadataCollectionPtrs;
+typedef std::vector<std::shared_ptr<MetadataCollectionBase>> collecctionMetadata;
 
 class Method;
 typedef std::shared_ptr<Method> MethodPtr;

@@ -1081,6 +1081,7 @@
     <ClCompile Include="src\MasterPassword.cpp" />
     <ClCompile Include="src\metadata\11_0\User11_0.cpp" />
     <ClCompile Include="src\metadata\12_0\User12_0.cpp" />
+    <ClCompile Include="src\metadata\14_0\schema.cpp" />
     <ClCompile Include="src\metadata\CharacterSet.cpp" />
     <ClCompile Include="src\metadata\Collation.cpp" />
     <ClCompile Include="src\metadata\column.cpp" />
@@ -1206,6 +1207,7 @@
     <ClInclude Include="src\MasterPassword.h" />
     <ClInclude Include="src\metadata\11_0\User11_0.h" />
     <ClInclude Include="src\metadata\12_0\User12_0.h" />
+    <ClInclude Include="src\metadata\14_0\schema.h" />
     <ClInclude Include="src\metadata\CharacterSet.h" />
     <ClInclude Include="src\metadata\Collation.h" />
     <ClInclude Include="src\metadata\collection.h" />

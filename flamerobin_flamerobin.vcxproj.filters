@@ -85,6 +85,12 @@
     <Filter Include="Header Files\metadata\13_0">
       <UniqueIdentifier>{b4ea120f-e41a-4ce0-abad-cd56d33d396e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\metadata\14_0">
+      <UniqueIdentifier>{4e68876d-5ccc-4d24-a33c-9bf945257065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\metadata\14_0">
+      <UniqueIdentifier>{231fa732-9222-47ae-84c5-671d1943d8ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\AboutBox.cpp">
@@ -455,6 +461,9 @@
     </ClCompile>
     <ClCompile Include="src\metadata\12_0\User12_0.cpp">
       <Filter>Source Files\metadata\12_0</Filter>
+    </ClCompile>
+    <ClCompile Include="src\metadata\14_0\schema.cpp">
+      <Filter>Source Files\metadata\14_0</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -832,6 +841,9 @@
     </ClInclude>
     <ClInclude Include="src\metadata\12_0\User12_0.h">
       <Filter>Header Files\metadata\12_0</Filter>
+    </ClInclude>
+    <ClInclude Include="src\metadata\14_0\schema.h">
+      <Filter>Header Files\metadata\14_0</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
