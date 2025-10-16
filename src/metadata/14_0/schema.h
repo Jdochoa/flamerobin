@@ -39,7 +39,7 @@ class Schema : public MetadataItem,
     public std::enable_shared_from_this<Schema>
 {
 private:
-    collecctionMetadata collectionMetadataM;
+    collectionMetadata collectionMetadataM;
     wxString characterSetNameM; 
     wxString characterSetSchemaNameM;
 

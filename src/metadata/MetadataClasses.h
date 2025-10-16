@@ -145,7 +145,7 @@ typedef std::vector<MetadataCollectionBasePtr> MetadataCollectionBasePtrs;
 template <class T>
 class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
-typedef std::vector<std::shared_ptr<MetadataCollectionBase>> collecctionMetadata;
+typedef std::vector<std::shared_ptr<MetadataCollectionBase>> collectionMetadata;
 
 class Method;
 typedef std::shared_ptr<Method> MethodPtr;
