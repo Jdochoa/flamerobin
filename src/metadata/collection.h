@@ -79,7 +79,7 @@ public:
     {
     }
 
-    virtual bool getChildren(std::vector<MetadataItem*>& temp)
+    virtual bool getChildren(std::vector<MetadataItem*>& )
     {
         return false;
     }

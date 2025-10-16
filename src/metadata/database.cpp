@@ -332,57 +332,57 @@ void Database::resetCredentials()
 void Database::getIdentifiers(std::vector<Identifier>& temp)
 {
     checkConnected(_("getIdentifiers"));
-    std::transform(characterSetsM->begin(), characterSetsM->end(),
+    std::transform(getCharacterSets()->begin(), getCharacterSets()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(collationsM->begin(), collationsM->end(),
+    std::transform(getCollations()->begin(), getCollations()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(tablesM->begin(), tablesM->end(),
+    std::transform(getTables()->begin(), getTables()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(sysTablesM->begin(), sysTablesM->end(),
+    std::transform(getSysTables()->begin(), getSysTables()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(GTTablesM->begin(), GTTablesM->end(),
+    std::transform(getGTTables()->begin(), getGTTables()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(viewsM->begin(), viewsM->end(),
+    std::transform(getViews()->begin(), getViews()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(packagesM->begin(), packagesM->end(),
+    std::transform(getPackages()->begin(), getPackages()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(sysPackagesM->begin(), sysPackagesM->end(),
+    std::transform(getSysPackages()->begin(), getSysPackages()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(proceduresM->begin(), proceduresM->end(),
+    std::transform(getProcedures()->begin(), getProcedures()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(DMLtriggersM->begin(), DMLtriggersM->end(),
+    std::transform(getDMLTriggers()->begin(), getDMLTriggers()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(DBTriggersM->begin(), DBTriggersM->end(),
+    std::transform(getDBTriggers()->begin(), getDBTriggers()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(DDLTriggersM->begin(), DDLTriggersM->end(),
+    std::transform(getDDLTriggers()->begin(), getDDLTriggers()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(rolesM->begin(), rolesM->end(),
+    std::transform(getRoles()->begin(), getRoles()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(generatorsM->begin(), generatorsM->end(),
+    std::transform(getGenerators()->begin(), getGenerators()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(functionSQLsM->begin(), functionSQLsM->end(),
+    std::transform(getFunctionSQLs()->begin(), getFunctionSQLs()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(UDFsM->begin(), UDFsM->end(),
+    std::transform(getUDFs()->begin(), getUDFs()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(userDomainsM->begin(), userDomainsM->end(),
+    std::transform(getDomains()->begin(), getDomains()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(exceptionsM->begin(), exceptionsM->end(),
+    std::transform(getExceptions()->begin(), getExceptions()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(sysDomainsM->begin(), sysDomainsM->end(),
+    std::transform(getSysDomains()->begin(), getSysDomains()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(indicesM->begin(), indicesM->end(),
+    std::transform(getIndices()->begin(), getIndices()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(sysIndicesM->begin(), sysIndicesM->end(),
+    std::transform(getSysIndices()->begin(), getSysIndices()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(usrIndicesM->begin(), usrIndicesM->end(),
+    std::transform(getUsrIndices()->begin(), getUsrIndices()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    std::transform(usersM->begin(), usersM->end(),
+    std::transform(getUsers()->begin(), getUsers()->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
 }
 
 void Database::getDatabaseTriggers(std::vector<Trigger *>& list)
 {
-    std::transform(DBTriggersM->begin(), DBTriggersM->end(),
+    std::transform(getDBTriggers()->begin(), getDBTriggers()->end(),
         std::back_inserter(list), std::mem_fn(&DBTriggerPtr::get));
 }
 
@@ -405,7 +405,7 @@ wxArrayString Database::getCharacterSet()
     wxArrayString temp;
     std::vector<CharacterSet*> list;
 
-    std::transform(characterSetsM->begin(), characterSetsM->end(),
+    std::transform(getCharacterSets()->begin(), getCharacterSets()->end(),
         std::back_inserter(list), std::mem_fn(&CharacterSetPtr::get));
 
     for (MetadataItem* c : list)
@@ -418,7 +418,7 @@ wxArrayString Database::getCharacterSet()
 //! returns all collations for a given charset
 wxArrayString Database::getCollations(const wxString& charset)
 {
-    CharacterSetPtr  characterSet = characterSetsM->findByName(charset);
+    CharacterSetPtr  characterSet = getCharacterSets()->findByName(charset);
     if (!characterSet)
         return wxArrayString();
     characterSet->ensureChildrenLoaded();
@@ -429,15 +429,15 @@ wxArrayString Database::getCollations(const wxString& charset)
 DomainPtr Database::getDomain(const wxString& name)
 {
     if (MetadataItem::hasSystemPrefix(name))
-        return sysDomainsM->getDomain(name);
+        return getSysDomains()->getDomain(name);
     else
-        return userDomainsM->getDomain(name);
+        return getDomains()->getDomain(name);
 }
 
 bool Database::isDefaultCollation(const wxString& charset,
     const wxString& collate)
 {
-    CharacterSetPtr  characterSet =  characterSetsM->findByName(charset);
+    CharacterSetPtr  characterSet =  getCharacterSets()->findByName(charset);
     if (!characterSet)
         return false;
 
@@ -510,8 +510,8 @@ void Database::loadGeneratorValues()
     MetadataLoaderTransaction tr(loader);
     SubjectLocker lock(this);
 
-    for (Generators::iterator it = generatorsM->begin();
-        it != generatorsM->end(); ++it)
+    for (Generators::iterator it = getGenerators()->begin();
+        it != getGenerators()->end(); ++it)
     {
         // make sure generator value is reloaded from database
         (*it)->invalidate();
@@ -545,7 +545,7 @@ MetadataItem* Database::findByIdAndType(NodeType nt, const int id)
     switch (nt)
     {
         case ntCharacterSet:
-            return characterSetsM->findByMetadataId(id).get();
+            return getCharacterSets()->findByMetadataId(id).get();
             break;
         default:
             return 0;
@@ -554,110 +554,131 @@ MetadataItem* Database::findByIdAndType(NodeType nt, const int id)
 
 MetadataItem* Database::findByNameAndType(NodeType nt, const wxString& name)
 {
-    if (!isConnected())
-        return 0;
-    MetadataItem* item;
+    if (isConnected()) {
+        if (nt >= ntDatabase && nt <= ntLastType) {
+            if (nt == ntDatabase)
+                return this;
+            else {
+                /*auto m = getCollectionPtr<MetadataCollectionBasePtr, MetadataCollectionBase>
+                    (static_cast<NodeType>(static_cast<int>(nt) + 1));
+                if (m)
+                    return m->findByName(name).get();
+                else
+                    return 0;*/
+                //NodeType type = static_cast<NodeType>(static_cast<int>(nt) + 1);
+                /*for (const auto& m : collectionMetadataM) {
+                    if (m->getType() == type) {
 
+                        return m->findByName(name).get();
+                    }
+                }*/
+
+
+            }
+
+
+
+        }
+    }
+    else
+        return 0;
+
+ 
+    //MetadataItem* item;
     switch (nt)
     {
-        case ntDatabase:
-            return this;
-            break;
-        case ntCharacterSet:
-            return characterSetsM->findByName(name).get();
-            break;
-        case ntCollation:
-            return collationsM->findByName(name).get();
-            break;
-        case ntTable:
-            return tablesM->findByName(name).get();
-            break;
-        case ntSysTable:
-            return sysTablesM->findByName(name).get();
-            break;
-        case ntGTT:
-            return GTTablesM->findByName(name).get();
-            break;
-        case ntView:
-            return viewsM->findByName(name).get();
-            break;
-        case ntTrigger:
-        case ntDMLTrigger:
-            if ( item = DMLtriggersM->findByName(name).get() ) {
-                return item;
-                break;
-            }
-        case ntDBTrigger:
-            if ( item = DBTriggersM->findByName(name).get()) {
-                return item;
-                break;
-            }
-        case ntDDLTrigger:
-            if (item = DDLTriggersM->findByName(name).get()) {
-                return item;
-                break;
-            }
-        case ntProcedure:
-            return proceduresM->findByName(name).get();
-            break;
+    case ntDatabase:
+        return this;
+        break;
+    case ntCharacterSet:
+        return getCharacterSets()->findByName(name).get();
+        break;
+    case ntCollation:
+        return getCollations()->findByName(name).get();
+        break;
+    case ntTable:
+        return getTables()->findByName(name).get();
+        break;
+    case ntSysTable:
+        return getSysTables()->findByName(name).get();
+        break;
+    case ntGTT:
+        return getGTTables()->findByName(name).get();
+        break;
+    case ntView:
+        return getViews()->findByName(name).get();
+        break;
+    case ntTrigger:
+    case ntDMLTrigger:
+        return getDMLTriggers()->findByName(name).get();
+        break;
+    case ntDBTrigger:
+        return getDBTriggers()->findByName(name).get();
+        break;
+    case ntDDLTrigger:
+        return getDDLTriggers()->findByName(name).get();
+        break;
+    case ntProcedure:
+        return getProcedures()->findByName(name).get();
+        break;
         //case ntFunction:
-        case ntFunctionSQL:
-            return functionSQLsM->findByName(name).get();
-            break;
-        case ntUDF:
-            return UDFsM->findByName(name).get();
-            break;
-        case ntGenerator:
-            return generatorsM->findByName(name).get();
-            break;
-        case ntRole:
-            return rolesM->findByName(name).get();
-            break;
-        case ntSysRole:
-            return sysRolesM->findByName(name).get();
-            break;
-        case ntDomain:
-            return userDomainsM->findByName(name).get();
-            break;
-        case ntSysDomain:
-            return sysDomainsM->findByName(name).get();
-            break;
-        case ntException:
-            return exceptionsM->findByName(name).get();
-            break;
-        case ntPackage:
-            return packagesM->findByName(name).get();
-            break;
-        case ntSysPackage:
-            return sysPackagesM->findByName(name).get();
-            break;
-        case ntIndex:
-            return indicesM->findByName(name).get();
-            break;
-        case ntSysIndices:
-            return sysIndicesM->findByName(name).get();
-            break;
-        case ntUsrIndices:
-            return usrIndicesM->findByName(name).get();
-            break;
-        case ntUser:
-            return usersM->findByName(name).get();
-            break;
-        default:
-            return 0;
+    case ntFunctionSQL:
+        return getFunctionSQLs()->findByName(name).get();
+        break;
+    case ntUDF:
+        return getUDFs()->findByName(name).get();
+        break;
+    case ntGenerator:
+        return getGenerators()->findByName(name).get();
+        break;
+    case ntRole:
+        return getRoles()->findByName(name).get();
+        break;
+    case ntSysRole:
+        return getSysRoles()->findByName(name).get();
+        break;
+    case ntDomain:
+        return getDomains()->findByName(name).get();
+        break;
+    case ntSysDomain:
+        return getSysDomains()->findByName(name).get();
+        break;
+    case ntException:
+        return getExceptions()->findByName(name).get();
+        break;
+    case ntPackage:
+        return getPackages()->findByName(name).get();
+        break;
+    case ntSysPackage:
+        return getSysPackages()->findByName(name).get();
+        break;
+    case ntIndex:
+        return getIndices()->findByName(name).get();
+        break;
+    case ntSysIndices:
+        return getSysIndices()->findByName(name).get();
+        break;
+    case ntUsrIndices:
+        return getUsrIndices()->findByName(name).get();
+        break;
+    case ntUser:
+        return getUsers()->findByName(name).get();
+        break;
+    default:
+        return 0;
     };
 }
 
 Relation* Database::findRelation(const Identifier& name)
 {
     wxString s(name.get());
-    if (TablePtr t = tablesM->findByName(s))
+    if (TablePtr t = getTables()->findByName(s))
         return t.get();
-    if (ViewPtr v = viewsM->findByName(s))
+    if (ViewPtr v = getViews()->findByName(s))
         return v.get();
-    if (TablePtr t = sysTablesM->findByName(s))
+    if (TablePtr t = getSysTables()->findByName(s))
         return t.get();
-    if (TablePtr t = GTTablesM->findByName(s))
+    if (TablePtr t = getGTTables()->findByName(s))
         return t.get();
     return 0;
 }
@@ -679,70 +700,70 @@ void Database::dropObject(MetadataItem* object)
     switch (nt)
     {
         case ntCharacterSet:
-            characterSetsM->remove((CharacterSet*)object);
+            getCharacterSets()->remove((CharacterSet*)object);
             break;
         case ntCollation:
-            collationsM->remove((Collation*)object);
+            getCollations()->remove((Collation*)object);
             break;
         case ntTable:
-            tablesM->remove((Table*)object);
+            getTables()->remove((Table*)object);
             break;
         case ntSysTable:
-            sysTablesM->remove((Table*)object);
+            getSysTables()->remove((Table*)object);
             break;
         case ntGTT:
-            GTTablesM->remove((Table*)object);
+            getGTTables()->remove((Table*)object);
             break;
         case ntView:
-            viewsM->remove((View*)object);
+            getViews()->remove((View*)object);
             break;
         case ntDMLTrigger:
-            DMLtriggersM->remove((DMLTrigger*)object);
+            getDMLTriggers()->remove((DMLTrigger*)object);
             break;
         case ntProcedure:
-            proceduresM->remove((Procedure*)object);
+            getProcedures()->remove((Procedure*)object);
             break;
         case ntFunctionSQL:
-            functionSQLsM->remove((FunctionSQL*)object);
+            getFunctionSQLs()->remove((FunctionSQL*)object);
             break;
         case ntUDF:
-            UDFsM->remove((UDF*)object);
+            getUDFs()->remove((UDF*)object);
             break;
         case ntGenerator:
-            generatorsM->remove((Generator*)object);
+            getGenerators()->remove((Generator*)object);
             break;
         case ntRole:
-            rolesM->remove((Role*)object);
+            getRoles()->remove((Role*)object);
             break;
         case ntSysRole:
-            sysRolesM->remove((Role*)object);
+            getSysRoles()->remove((Role*)object);
             break;
         case ntDomain:
-            userDomainsM->remove((Domain*)object);
+            getDomains()->remove((Domain*)object);
             break;
         case ntSysDomain:
-            sysDomainsM->remove((Domain*)object);
+            getSysDomains()->remove((Domain*)object);
             break;
         case ntException:
-            exceptionsM->remove((Exception*)object);
+            getExceptions()->remove((Exception*)object);
             break;
         case ntPackage:
-            packagesM->remove((Package*)object);
+            getPackages()->remove((Package*)object);
             break;
         case ntSysPackage:
-            sysPackagesM->remove((Package*)object);
+            getSysPackages()->remove((Package*)object);
             break;
         case ntDBTrigger:
-            DBTriggersM->remove((DBTrigger*)object);
+            getDBTriggers()->remove((DBTrigger*)object);
             break;
         case ntDDLTrigger:
-            DDLTriggersM->remove((DDLTrigger*)object);
+            getDDLTriggers()->remove((DDLTrigger*)object);
             break;
         case ntIndex:
-            indicesM->remove((Index*)object);
+            getIndices()->remove((Index*)object);
             break;
         case ntUser:
-            usersM->remove((Index*)object);
+            getUsers()->remove((Index*)object);
             break;
         default:
             return;
@@ -754,70 +775,70 @@ void Database::addObject(NodeType type, const wxString& name)
     switch (type)
     {
         case ntCharacterSet:
-            characterSetsM->insert(name);
+            getCharacterSets()->insert(name);
             break;
         case ntCollation:
-            collationsM->insert(name);
+            getCollations()->insert(name);
             break;
         case ntTable:
-            tablesM->insert(name);
+            getTables()->insert(name);
             break;
         case ntSysTable:
-            sysTablesM->insert(name);
+            getSysTables()->insert(name);
             break;
         case ntGTT:
-            GTTablesM->insert(name);
+            getGTTables()->insert(name);
             break;
         case ntView:
-            viewsM->insert(name);
+            getViews()->insert(name);
             break;
         case ntProcedure:
-            proceduresM->insert(name);
+            getProcedures()->insert(name);
             break;
         case ntDMLTrigger:
-            DMLtriggersM->insert(name);
+            getDMLTriggers()->insert(name);
             break;
         case ntRole:
-            rolesM->insert(name);
+            getRoles()->insert(name);
             break;
         case ntSysRole:
-            sysRolesM->insert(name);
+            getSysRoles()->insert(name);
             break;
         case ntGenerator:
-            generatorsM->insert(name);
+            getGenerators()->insert(name);
             break;
         case ntFunctionSQL:
-            functionSQLsM->insert(name);
+            getFunctionSQLs()->insert(name);
             break;
         case ntUDF:
-            UDFsM->insert(name);
+            getUDFs()->insert(name);
             break;
         case ntDomain:
-            userDomainsM->insert(name);
+            getDomains()->insert(name);
             break;
         case ntSysDomain:
-            sysDomainsM->insert(name);
+            getSysDomains()->insert(name);
             break;
         case ntException:
-            exceptionsM->insert(name);
+            getExceptions()->insert(name);
             break;
         case ntPackage:
-            packagesM->insert(name);
+            getPackages()->insert(name);
             break;
         case ntSysPackage:
-            sysPackagesM->insert(name);
+            getSysPackages()->insert(name);
             break;
         case ntDBTrigger:
-            DBTriggersM->insert(name);
+            getDBTriggers()->insert(name);
             break;
         case ntDDLTrigger:
-            DDLTriggersM->insert(name);
+            getDDLTriggers()->insert(name);
             break;
         case ntIndex:
-            indicesM->insert(name);
+            getIndices()->insert(name);
             break;
         case ntUser:
-            usersM->insert(name);
+            getUsers()->insert(name);
             break;
         default:
             break;
@@ -849,7 +870,7 @@ void Database::parseCommitedSql(const SqlStatement& stm)
     {
         // the affected table will recognize its index (if loaded)
         Tables::iterator it;
-        for (it = tablesM->begin(); it != tablesM->end(); ++it)
+        for (it = getTables()->begin(); it != getTables()->end(); ++it)
             (*it)->invalidateIndices(stm.getName());
         return;
     }
@@ -877,10 +898,10 @@ void Database::parseCommitedSql(const SqlStatement& stm)
     if (stm.actionIs(actDROP, ntDMLTrigger))
     {
         Tables::iterator itt;
-        for (itt = tablesM->begin(); itt != tablesM->end(); itt++)
+        for (itt = getTables()->begin(); itt != getTables()->end(); itt++)
             (*itt)->notifyObservers();
         Views::iterator itv;
-        for (itv = viewsM->begin(); itv != viewsM->end(); itv++)
+        for (itv = getViews()->begin(); itv != getViews()->end(); itv++)
             (*itv)->notifyObservers();
         notifyObservers();
     }
@@ -918,14 +939,14 @@ void Database::parseCommitedSql(const SqlStatement& stm)
         dropObject(object);
         if (stm.getObjectType() == ntTable || stm.getObjectType() == ntView)
         {
-            DMLTriggers::iterator it = DMLtriggersM->begin();
-            while (it != DMLtriggersM->end())
+            DMLTriggers::iterator it = getDMLTriggers()->begin();
+            while (it != getDMLTriggers()->end())
             {
                 Relation* r = getRelationForTrigger((*it).get());
                 if (!r || r->getIdentifier().equals(stm.getIdentifier()))
                 {
                     dropObject((*it).get());
-                    it = DMLtriggersM->begin();
+                    it = getDMLTriggers()->begin();
                 }
                 else
                     it++;
@@ -951,16 +972,16 @@ void Database::parseCommitedSql(const SqlStatement& stm)
 
             if (MetadataItem::hasSystemPrefix(domainName))
             {
-                DomainPtr d = sysDomainsM->findByName(domainName);
+                DomainPtr d = getSysDomains()->findByName(domainName);
                 if (!d)     // domain does not exist in DBH
-                    d = sysDomainsM->insert(domainName);
+                    d = getSysDomains()->insert(domainName);
                 d->invalidate();
             }
             else
             {
-                DomainPtr d = userDomainsM->findByName(domainName);
+                DomainPtr d = getDomains()->findByName(domainName);
                 if (!d)     // domain does not exist in DBH
-                    d = userDomainsM->insert(domainName);
+                    d = getDomains()->insert(domainName);
                 d->invalidate();
             }
         }
@@ -1024,8 +1045,8 @@ void Database::parseCommitedSql(const SqlStatement& stm)
             case ntDomain:
                 object->invalidate();
                 // notify all table columns with that domain
-                for (Tables::iterator it = tablesM->begin();
-                    it != tablesM->end(); ++it)
+                for (Tables::iterator it = getTables()->begin();
+                    it != getTables()->end(); ++it)
                 {
                     for (ColumnPtrs::iterator itColumn = (*it)->begin();
                         itColumn != (*it)->end(); ++itColumn)
@@ -1166,7 +1187,7 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
             DatabasePtr me(shared_from_this());
             unsigned lockCount = getLockCount();
 
-            characterSetsM.reset(new CharacterSets(me));
+            /*characterSetsM.reset(new CharacterSets(me));
             initializeLockCount(characterSetsM, lockCount);
             collationsM.reset(new Collations(me));
             initializeLockCount(collationsM, lockCount);
@@ -1236,6 +1257,8 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
             schemasM.reset(new Schemas(me));
 
             initializeLockCount(usersM, lockCount);
+            */
+            configureCollections();
 
             // first start a transaction for metadata loading, then lock the
             // database
@@ -1310,15 +1333,15 @@ void Database::loadCollections(ProgressIndicator* progressIndicator)
         }
     };
 
-    const int collectionCount = 23;
+    const int collectionCount = 24 * 2;
     std::string loadStmt;
     ProgressIndicatorHelper pih(progressIndicator);
 
     MetadataLoader* loader = getMetadataLoader();
     MetadataLoaderTransaction tr(loader);
     SubjectLocker lock(this);
-
-    pih.init(_("tables"), collectionCount, 0);
+    
+    /*pih.init(_("tables"), collectionCount, 0);
     tablesM->load(progressIndicator);
 
     pih.init(_("system tables"), collectionCount, 1);
@@ -1400,10 +1423,17 @@ void Database::loadCollections(ProgressIndicator* progressIndicator)
     pih.init(_("Users"), collectionCount, 23);
     usersM->load(progressIndicator);
 
-    pih.init(_("Schemas"), collectionCount, 23);
-    schemasM->load(progressIndicator);
+    if (getInfo().getODSVersionIsHigherOrEqualTo(14.0)) {
+        pih.init(_("Schemas"), collectionCount, 24);
+        schemasM->load(progressIndicator);
+    }
+    */
+    int i = 25;
+    for (const auto& m : collectionMetadataM) {
 
-
+        pih.init(m->getTypeName(), collectionCount, i++);
+        m->load(progressIndicator);
+    }
 }
 
 void Database::loadDatabaseInfo()
@@ -1488,7 +1518,7 @@ void Database::setDisconnected()
     resetPendingLoadData();
 
     // remove entire DBH beneath
-    userDomainsM.reset();
+    /*userDomainsM.reset();
     sysDomainsM.reset();
     functionSQLsM.reset();
     generatorsM.reset();
@@ -1511,7 +1541,9 @@ void Database::setDisconnected()
     characterSetsM.reset();
     collationsM.reset();
     usersM.reset();
-    schemasM.reset();
+    schemasM.reset();*/
+
+    collectionMetadataM.clear();
 
     if (config().get("HideDisconnectedDatabases", false))
         getServer()->notifyObservers();
@@ -1535,141 +1567,106 @@ bool Database::getChildren(std::vector<MetadataItem*>& temp)
     if (!connectedM)
         return false;
 
+    if (collectionMetadataM.empty())
+        return false;
+
     getCollections(temp, true);
     return true;
 }
 
 DomainsPtr Database::getDomains()
 {
-    wxASSERT(userDomainsM);
-    userDomainsM->ensureChildrenLoaded();
-    return userDomainsM;
+    return getCollectionPtr<DomainsPtr, Domains>(ntDomains);
 }
 
 SysDomainsPtr Database::getSysDomains()
 {
-    wxASSERT(sysDomainsM);
-    sysDomainsM->ensureChildrenLoaded();
-    return sysDomainsM;
+    return getCollectionPtr<SysDomainsPtr, SysDomains>(ntSysDomains);
 }
 
 ExceptionsPtr Database::getExceptions()
 {
-    wxASSERT(exceptionsM);
-    exceptionsM->ensureChildrenLoaded();
-    return exceptionsM;
+    return getCollectionPtr<ExceptionsPtr, Exceptions>(ntExceptions);
 }
 
 UDFsPtr Database::getUDFs()
 {
-    wxASSERT(UDFsM);
-    UDFsM->ensureChildrenLoaded();
-    return UDFsM;
+    return getCollectionPtr<UDFsPtr, UDFs>(ntUDFs);
 }
 
 UsersPtr Database::getUsers()
 {
-    wxASSERT(usersM);
-    usersM->ensureChildrenLoaded();
-    return usersM;
+    return getCollectionPtr<UsersPtr, Users>(ntUsers);
 }
 
 UsrIndicesPtr Database::getUsrIndices()
 {
-    wxASSERT(usrIndicesM);
-    usrIndicesM->ensureChildrenLoaded();
-    return usrIndicesM;
+    return getCollectionPtr<UsrIndicesPtr, UsrIndices>(ntUsrIndices);
 }
 
 FunctionSQLsPtr Database::getFunctionSQLs()
 {
-    wxASSERT(functionSQLsM);
-    functionSQLsM->ensureChildrenLoaded();
-    return functionSQLsM;
+    return getCollectionPtr<FunctionSQLsPtr, FunctionSQLs>(ntFunctionSQLs);
 }
 
 GeneratorsPtr Database::getGenerators()
 {
-    wxASSERT(generatorsM);
-    generatorsM->ensureChildrenLoaded();
-    return generatorsM;
+    return getCollectionPtr<GeneratorsPtr, Generators>(ntGenerators);
 }
 
 IndicesPtr Database::getIndices()
 {
-    wxASSERT(indicesM);
-    indicesM->ensureChildrenLoaded();
-    return indicesM;
+    return getCollectionPtr<IndicesPtr, Indices>(ntIndices);
 }
 
 PackagesPtr Database::getPackages()
 {
-    wxASSERT(packagesM);
-    packagesM->ensureChildrenLoaded();
-    return packagesM;
+    return getCollectionPtr<PackagesPtr, Packages>(ntPackages);
 }
 
 SysPackagesPtr Database::getSysPackages()
 {
-    wxASSERT(sysPackagesM);
-    sysPackagesM->ensureChildrenLoaded();
-    return sysPackagesM;
+    return getCollectionPtr<SysPackagesPtr, SysPackages>(ntSysPackages);
 }
 
 ProceduresPtr Database::getProcedures()
 {
-    wxASSERT(proceduresM);
-    proceduresM->ensureChildrenLoaded();
-    return proceduresM;
+    return getCollectionPtr<ProceduresPtr, Procedures>(ntProcedures);
 }
 
 RolesPtr Database::getRoles()
 {
-    wxASSERT(rolesM);
-    rolesM->ensureChildrenLoaded();
-    return rolesM;
+    return getCollectionPtr<RolesPtr, Roles>(ntRoles);
 }
 
 SysIndicesPtr Database::getSysIndices()
 {
-    wxASSERT(sysIndicesM);
-    sysIndicesM->ensureChildrenLoaded();
-    return sysIndicesM;
+    return getCollectionPtr<SysIndicesPtr, SysIndices>(ntSysIndices);
 }
 
 SysRolesPtr Database::getSysRoles()
 {
-    wxASSERT(sysRolesM);
-    sysRolesM->ensureChildrenLoaded();
-    return sysRolesM;
+    return getCollectionPtr<SysRolesPtr, SysRoles>(ntSysRoles);
 }
 
 SysTablesPtr Database::getSysTables()
 {
-    wxASSERT(sysTablesM);
-    sysTablesM->ensureChildrenLoaded();
-    return sysTablesM;
+    return getCollectionPtr<SysTablesPtr, SysTables>(ntSysTables);
 }
 
 GTTablesPtr Database::getGTTables()
 {
-    wxASSERT(GTTablesM);
-    GTTablesM->ensureChildrenLoaded();
-    return GTTablesM;
+    return getCollectionPtr<GTTablesPtr, GTTables>(ntGTTs);
 }
 
 TablesPtr Database::getTables()
 {
-    wxASSERT(tablesM);
-    tablesM->ensureChildrenLoaded();
-    return tablesM;
+    return getCollectionPtr<TablesPtr, Tables>(ntTables);
 }
 
 DMLTriggersPtr Database::getDMLTriggers()
 {
-    wxASSERT(DMLtriggersM);
-    DMLtriggersM->ensureChildrenLoaded();
-    return DMLtriggersM;
+    return getCollectionPtr<DMLTriggersPtr, DMLTriggers>(ntDMLTriggers);
 }
 
 CharacterSetsPtr Database::getCharacterSets()
@@ -1677,32 +1674,25 @@ CharacterSetsPtr Database::getCharacterSets()
     wxASSERT(characterSetsM);
     characterSetsM->ensureChildrenLoaded();
     return characterSetsM;
+    //return getCollectionPtr<CharacterSetsPtr, CharacterSets>(ntCharacterSets);
 }
 
 CollationsPtr Database::getCollations()
 {
-    wxASSERT(collationsM);
-    collationsM->ensureChildrenLoaded();
-    return collationsM;
+    return getCollectionPtr<CollationsPtr, Collations>(ntCollations);
 }
 
 DBTriggersPtr Database::getDBTriggers()
 {
-    wxASSERT(DBTriggersM);
-    DBTriggersM->ensureChildrenLoaded();
-    return DBTriggersM;
+    return getCollectionPtr<DBTriggersPtr, DBTriggers>(ntDBTriggers);
 }
 DDLTriggersPtr Database::getDDLTriggers()
 {
-    wxASSERT(DDLTriggersM);
-    DDLTriggersM->ensureChildrenLoaded();
-    return DDLTriggersM;
+    return getCollectionPtr<DDLTriggersPtr, DDLTriggers>(ntDDLTriggers);
 }
 ViewsPtr Database::getViews()
 {
-    wxASSERT(viewsM);
-    viewsM->ensureChildrenLoaded();
-    return viewsM;
+    return getCollectionPtr<ViewsPtr, Views>(ntViews);
 }
 
 // returns vector of all subitems
@@ -1715,7 +1705,7 @@ void Database::getCollections(std::vector<MetadataItem*>& temp, bool system)
     //if (system && showSystemCharacterSet())
     //    temp.push_back(characterSetsM.get());
     
-    temp.push_back(collationsM.get());
+    /*temp.push_back(collationsM.get());
 
     if (getInfo().getODSVersionIsHigherOrEqualTo(11.1)) 
         temp.push_back(DBTriggersM.get());
@@ -1756,7 +1746,42 @@ void Database::getCollections(std::vector<MetadataItem*>& temp, bool system)
     temp.push_back(UDFsM.get());
     temp.push_back(usersM.get());
     temp.push_back(viewsM.get());
-    temp.push_back(schemasM.get());
+    temp.push_back(schemasM.get());*/
+    
+
+    for (const auto& m : collectionMetadataM) {
+        
+        
+        switch (m->getType()) {
+        /*case ntSysCollations:
+            if (system && showSystemCollations())
+                temp.push_back(&(*m));
+            break;*/
+        case ntSysDomains:
+            if (system && showSystemDomains())
+                temp.push_back(&(*m));
+            break;
+        case ntSysIndices:
+            if (system && showSystemIndices() && !showOneNodeIndices())
+                temp.push_back(&(*m));
+            break;
+        case ntSysPackages:
+            if (system && showSystemPackages())
+                temp.push_back(&(*m));
+            break;
+        case ntSysRoles:
+            if (system && showSystemRoles())
+                temp.push_back(&(*m));
+            break;
+        case ntSysTables:
+           if (system && showSystemTables())
+                temp.push_back(&(*m));
+           break;
+           default:
+               temp.push_back(&(*m));
+               break;
+        }
+    }
 
 }
 
@@ -1770,7 +1795,7 @@ void Database::lockChildren()
 {
     if (isConnected())
     {
-        userDomainsM->lockSubject();
+        /*userDomainsM->lockSubject();
         sysDomainsM->lockSubject();
         exceptionsM->lockSubject();
         functionSQLsM->lockSubject();
@@ -1793,7 +1818,12 @@ void Database::lockChildren()
         characterSetsM->lockSubject();
         collationsM->lockSubject();
         usersM->lockSubject();
-        schemasM->lockSubject();
+        schemasM->lockSubject();*/
+
+        for (const auto& m : collectionMetadataM) {
+            m->lockSubject();
+        }
+
     }
 }
 
@@ -1804,7 +1834,7 @@ void Database::unlockChildren()
     // every added domain will cause all collection observers to update
     if (isConnected())
     {
-        usrIndicesM->unlockSubject();
+        /*usrIndicesM->unlockSubject();
         sysIndicesM->unlockSubject();
         indicesM->unlockSubject();
         viewsM->unlockSubject();
@@ -1827,7 +1857,12 @@ void Database::unlockChildren()
         characterSetsM->unlockSubject();
         collationsM->unlockSubject();
         usersM->unlockSubject();
-        schemasM->unlockSubject();
+        schemasM->unlockSubject();*/
+
+        for (const auto& m : collectionMetadataM) {
+            m->unlockSubject();
+        }
+
     }
 }
 
@@ -2188,6 +2223,91 @@ bool Database::showOneNodeIndices()
         b = config().get(SHOW_ONENODEINDICES, false);
 
     return b;
+}
+
+template<class T>
+inline T Database::getCollection(NodeType type)
+{
+    for (const auto& m : collectionMetadataM) {
+        if (m->getType() == type) {
+            return dynamic_cast<T&>(*m);
+        }
+    }
+    return nullptr;
+}
+
+template<class P, class T>
+P Database::getCollectionPtr(NodeType type)
+{
+    return std::make_shared<T>(getCollection<T>(type));
+}
+
+void Database::configureCollections()
+{
+    collectionMetadataM.push_back(std::make_shared<Collations>(getDatabase()));
+
+    if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
+        collectionMetadataM.push_back(std::make_shared<DBTriggers>(getDatabase()));
+
+    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+        collectionMetadataM.push_back(std::make_shared<DDLTriggers>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));    
+
+    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+        collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Generators>(getDatabase()));
+
+    if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
+        collectionMetadataM.push_back(std::make_shared<GTTables>(getDatabase()));
+
+    if (showOneNodeIndices() && showSystemIndices())
+        collectionMetadataM.push_back(std::make_shared<Indices>(getDatabase()));
+    else
+        collectionMetadataM.push_back(std::make_shared<UsrIndices>(getDatabase()));
+    
+    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+        collectionMetadataM.push_back(std::make_shared<Packages>(getDatabase()));
+  
+    collectionMetadataM.push_back(std::make_shared<Procedures>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Roles>(getDatabase()));
+
+    // Only push back system objects when they should be shown
+    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
+        if (showSystemPackages())
+            collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
+    }
+    if (showSystemDomains())
+        collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
+
+    if (showSystemIndices() && !showOneNodeIndices())
+        collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
+
+    if (showSystemRoles())
+        collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
+
+    if (showSystemTables())
+        collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Tables>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<DMLTriggers>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<UDFs>(getDatabase()));
+
+    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+        collectionMetadataM.push_back(std::make_shared<Users12_0>(getDatabase()));
+    else
+        collectionMetadataM.push_back(std::make_shared<Users11_0>(getDatabase()));
+
+    collectionMetadataM.push_back(std::make_shared<Views>(getDatabase()));
+    
+    if (getInfo().getODSVersionIsHigherOrEqualTo(14.0))
+        collectionMetadataM.push_back(std::make_shared<Schemas>(getDatabase()));
 }
 
 wxString mapConnectionCharsetToSystemCharset(const wxString& connectionCharset)

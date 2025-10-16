@@ -188,7 +188,7 @@ private:
     DatabaseInfo databaseInfoM;
 
     CharacterSetsPtr characterSetsM;
-    CollationsPtr collationsM;
+    /*CollationsPtr collationsM;
     DBTriggersPtr DBTriggersM;
     DDLTriggersPtr DDLTriggersM;
     DMLTriggersPtr DMLtriggersM;
@@ -211,7 +211,9 @@ private:
     UDFsPtr UDFsM;
     UsersPtr usersM;
     UsrIndicesPtr usrIndicesM;
-    ViewsPtr viewsM;
+    ViewsPtr viewsM;*/
+
+    collectionMetadata collectionMetadataM;
 
     // copy constructor implementation removed since it's no longer needed
     // (Server uses a vector of std::shared_ptr<Database> now)
@@ -241,6 +243,13 @@ private:
     bool showSystemRoles();
     bool showSystemTables();
     bool showOneNodeIndices();
+
+    void configureCollections();
+
+    template <class T>  
+    T getCollection(NodeType type);
+    template <class P, class T>  
+    P getCollectionPtr(NodeType type);
 
     inline void checkConnected(const wxString& operation) const;
 protected:
