@@ -260,7 +260,7 @@ void CharacterSets::loadChildren()
 }
 
 CharacterSets::CharacterSets(DatabasePtr database)
-    : MetadataCollection<CharacterSet>(ntChartersets, database, _("CharacterSets"))
+    : MetadataCollection<CharacterSet>(ntCharacterSets, database, _("CharacterSets"))
 
 {
 }
