@@ -198,6 +198,41 @@ void MetadataItem::resetPendingLoadData()
         childrenLoadedM = lsNotLoaded;
 }
 
+DatabasePtr MetadataItem::findDataBase(MetadataItem* item) const 
+{
+    
+    /*MetadataItem* m = item->getParent();
+    if (m) {
+        if (m->getType() == ntDatabase)
+            return DatabasePtr((*m)&);
+    }
+    else
+        return DatabasePtr();
+    if (this->getType() == ntDatabase)
+        return DatabasePtr((*this)&);
+    else {
+        
+        if (m)
+            return findDataBase(m);
+        else
+            return DatabasePtr();
+    }*/
+    /*Database* db = dynamic_cast<Database*>(this);
+    if (db) 
+        return DatabasePtr(db);
+    else {
+        MetadataItem* m = item->getParent();
+        if (!m)
+            return DatabasePtr();
+        db = dynamic_cast<Database*>(m);
+        if (db)
+            return DatabasePtr(db);
+        else 
+            return m->findDataBase(m);
+    }*/
+    return DatabasePtr();
+}
+
 void MetadataItem::ensurePropertiesLoaded()
 {
     if (!propertiesLoaded())
@@ -268,6 +303,7 @@ DatabasePtr MetadataItem::getDatabase() const
 {
     if (MetadataItem* m = getParent())
         return m->getDatabase();
+
     return DatabasePtr();
 }
 

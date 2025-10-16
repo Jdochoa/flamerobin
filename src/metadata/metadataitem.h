@@ -69,7 +69,7 @@ typedef enum { ntUnknown, ntRoot, ntServer, ntDatabase,
     ntUser, ntUsers,
     ntUserAttribute, ntUserAttributes,
     ntSystem, 
-    ntCharacterSet, ntChartersets,
+    ntCharacterSet, ntCharacterSets,
     ntSysCollation, ntSysCollations, 
     ntCollation, ntCollations,
     ntSchema, ntSchemas,
@@ -83,7 +83,7 @@ void initializeLockCount(MetadataItem* item, unsigned count);
 void initializeLockCount(MetadataItemPtr item, unsigned count);
 
 class MetadataItem: public Subject, public ObjectWithHandle<MetadataItem>,
-    public ProcessableObject
+    public ProcessableObject//, std::enable_shared_from_this <MetadataItem>
 {
 private:
     MetadataItem* parentM;
@@ -119,6 +119,7 @@ protected:
     void resetPendingLoadData();
 
     virtual int getDBType() const { return -1; };
+    virtual DatabasePtr findDataBase(MetadataItem* item) const;
     //virtual void getDependent(std::vector<Dependency>& list,  bool fieldsOnly = false);
     //virtual void getDepended(std::vector<Dependency>& list, bool fieldsOnly = false);
 
