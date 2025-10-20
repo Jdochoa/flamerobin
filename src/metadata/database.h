@@ -188,30 +188,6 @@ private:
     DatabaseInfo databaseInfoM;
 
     CharacterSetsPtr characterSetsM;
-    /*CollationsPtr collationsM;
-    DBTriggersPtr DBTriggersM;
-    DDLTriggersPtr DDLTriggersM;
-    DMLTriggersPtr DMLtriggersM;
-    DomainsPtr userDomainsM;
-    ExceptionsPtr exceptionsM;
-    FunctionSQLsPtr functionSQLsM;
-    GeneratorsPtr generatorsM;
-    GTTablesPtr GTTablesM;
-    IndicesPtr indicesM;
-    PackagesPtr packagesM;
-    ProceduresPtr proceduresM;
-    RolesPtr rolesM;
-    SchemasPtr schemasM;
-    SysIndicesPtr sysIndicesM;
-    SysDomainsPtr sysDomainsM;
-    SysPackagesPtr sysPackagesM;
-    SysRolesPtr sysRolesM;
-    SysTablesPtr sysTablesM;
-    TablesPtr tablesM;
-    UDFsPtr UDFsM;
-    UsersPtr usersM;
-    UsrIndicesPtr usrIndicesM;
-    ViewsPtr viewsM;*/
 
     collectionMetadata collectionMetadataM;
 
@@ -220,9 +196,6 @@ private:
     Database(const Database& rhs);
 
     void setDisconnected();
-
-    //std::multimap<CharacterSet, wxString> collationsM;
-    void loadCollations();
 
     void loadCollections(ProgressIndicator* progressIndicator);
 

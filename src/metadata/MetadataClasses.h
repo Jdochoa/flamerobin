@@ -142,7 +142,7 @@ typedef std::vector<MetadataItemPtr> MetadataItemPtrs;
 class MetadataCollectionBase;
 typedef std::shared_ptr<MetadataCollectionBase> MetadataCollectionBasePtr;
 typedef std::vector<MetadataCollectionBasePtr> MetadataCollectionBasePtrs;
-template <class T>
+template <class T /*= MetadataItem*/>
 class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
 typedef std::vector<std::shared_ptr<MetadataCollectionBase>> collectionMetadata;

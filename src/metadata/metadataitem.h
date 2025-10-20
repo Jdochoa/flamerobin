@@ -62,7 +62,8 @@ typedef enum {
     ntSysDomain,      ntSysDomains,
     ntRole,           ntRoles, 
     ntSysRole,        ntSysRoles, 
-    ntColumn,         ntParameter, 
+    ntColumn,         
+    ntParameter, 
     ntIndex,          ntIndices, 
     ntSysIndices,     ntUsrIndices,
     ntPackage,        ntPackages, 
@@ -205,8 +206,8 @@ public:
 class DependencyField : public MetadataItem
 {
 private:
-std::vector<Dependency> objectsM_;
-int positionM = 0;
+    std::vector<Dependency> objectsM_;
+    int positionM = 0;
 public:
     DependencyField(wxString name, int position = 0);
     int getPosition();

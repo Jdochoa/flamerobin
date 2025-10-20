@@ -89,6 +89,10 @@ public:
         return 0;
     }
 
+    virtual void forEachItem(const std::function<void(const MetadataItemPtr&)>& func) const = 0;
+    virtual MetadataItemPtr findByName_(const wxString& name) const = 0;
+
+
 };
 
 template <class T>
@@ -261,6 +265,20 @@ public:
         if (!childrenLoaded())
             return 0;
         return itemsM.size();
+    }
+
+    void forEachItem(const std::function<void(const MetadataItemPtr&)>& func) const override {
+        for (const auto& item : itemsM) {
+            func(std::static_pointer_cast<MetadataItem>(item));
+        }
+    }
+    MetadataItemPtr findByName_(const wxString& name) const override {
+        for (const auto& item : itemsM) {
+            if (item && item->getName_() == name) {
+                return std::static_pointer_cast<MetadataItem>(item);
+            }
+        }
+        return nullptr;
     }
 
 protected:
