@@ -41,6 +41,13 @@ protected:
         : MetadataItem(type, database.get(), name, -1), databaseM(database)
     {
     }
+    
+    MetadataCollectionBase(NodeType type, MetadataItem* parent,
+        const wxString& name)
+        :MetadataItem(type, parent, name, -1), databaseM(parent->getDatabase())
+    {
+
+    }
 
     // helper structs for find_if()
     struct FindByAddress
@@ -134,6 +141,13 @@ protected:
             const wxString& name)
         : MetadataCollectionBase(type, database, name)
     {
+    }
+
+    MetadataCollection<T>(NodeType type, MetadataItem* parent,
+        const wxString& name)
+        : MetadataCollectionBase(type, parent, name)
+    {
+
     }
 
 public:
