@@ -1831,87 +1831,85 @@ bool Database::showOneNodeIndices()
     return b;
 }
 
-template<class T>
-inline T Database::getCollection(NodeType type)
-{
-    for (const auto& m : collectionMetadataM) {
-        if (m->getType() == type) {
-            return dynamic_cast<T&>(*m);
-        }
-    }
-    return nullptr;
-}
-
 template<class P, class T>
 P Database::getCollectionPtr(NodeType type)
 {
-    return std::make_shared<T>(getCollection<T>(type));
+    for (const auto& m : collectionMetadataM) {
+        if (m->getType() == type) {
+            return std::make_shared<T>(dynamic_cast<T&>(*m));
+        }
+    }
+
+    return nullptr;    
 }
 
 void Database::configureCollections()
 {
-    collectionMetadataM.push_back(std::make_shared<Collations>(getDatabase()));
+    if (getInfo().getODS() < 14) {
+        collectionMetadataM.push_back(std::make_shared<Collations>(getDatabase()));
 
-    if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
-        collectionMetadataM.push_back(std::make_shared<DBTriggers>(getDatabase()));
+        if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
+            collectionMetadataM.push_back(std::make_shared<DBTriggers>(getDatabase()));
 
-    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-        collectionMetadataM.push_back(std::make_shared<DDLTriggers>(getDatabase()));
+        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+            collectionMetadataM.push_back(std::make_shared<DDLTriggers>(getDatabase()));
 
-    collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
+        collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
 
-    collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));    
+        collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));
 
-    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-        collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));
+        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+            collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));
 
-    collectionMetadataM.push_back(std::make_shared<Generators>(getDatabase()));
+        collectionMetadataM.push_back(std::make_shared<Generators>(getDatabase()));
 
-    if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
-        collectionMetadataM.push_back(std::make_shared<GTTables>(getDatabase()));
+        if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
+            collectionMetadataM.push_back(std::make_shared<GTTables>(getDatabase()));
 
-    if (showOneNodeIndices() && showSystemIndices())
-        collectionMetadataM.push_back(std::make_shared<Indices>(getDatabase()));
-    else
-        collectionMetadataM.push_back(std::make_shared<UsrIndices>(getDatabase()));
-    
-    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-        collectionMetadataM.push_back(std::make_shared<Packages>(getDatabase()));
-  
-    collectionMetadataM.push_back(std::make_shared<Procedures>(getDatabase()));
+        if (showOneNodeIndices() && showSystemIndices())
+            collectionMetadataM.push_back(std::make_shared<Indices>(getDatabase()));
+        else
+            collectionMetadataM.push_back(std::make_shared<UsrIndices>(getDatabase()));
 
+        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
+            collectionMetadataM.push_back(std::make_shared<Packages>(getDatabase()));
+
+        collectionMetadataM.push_back(std::make_shared<Procedures>(getDatabase()));
+    }
     collectionMetadataM.push_back(std::make_shared<Roles>(getDatabase()));
 
-    // Only push back system objects when they should be shown
-    if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-        if (showSystemPackages())
-            collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
+    if (getInfo().getODS() < 14) {
+        // Only push back system objects when they should be shown
+        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
+            if (showSystemPackages())
+                collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
+        }
+        if (showSystemDomains())
+            collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
+
+        if (showSystemIndices() && !showOneNodeIndices())
+            collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
+
+        if (showSystemRoles())
+            collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
+
+        if (showSystemTables())
+            collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
+
+        collectionMetadataM.push_back(std::make_shared<Tables>(getDatabase()));
+
+        collectionMetadataM.push_back(std::make_shared<DMLTriggers>(getDatabase()));
+
+        collectionMetadataM.push_back(std::make_shared<UDFs>(getDatabase()));
     }
-    if (showSystemDomains())
-        collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
-
-    if (showSystemIndices() && !showOneNodeIndices())
-        collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
-
-    if (showSystemRoles())
-        collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
-
-    if (showSystemTables())
-        collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
-
-    collectionMetadataM.push_back(std::make_shared<Tables>(getDatabase()));
-
-    collectionMetadataM.push_back(std::make_shared<DMLTriggers>(getDatabase()));
-
-    collectionMetadataM.push_back(std::make_shared<UDFs>(getDatabase()));
-
     if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
         collectionMetadataM.push_back(std::make_shared<Users12_0>(getDatabase()));
     else
         collectionMetadataM.push_back(std::make_shared<Users11_0>(getDatabase()));
 
-    collectionMetadataM.push_back(std::make_shared<Views>(getDatabase()));
-    
+    if (getInfo().getODS() < 14) {
+        collectionMetadataM.push_back(std::make_shared<Views>(getDatabase()));
+    }
     if (getInfo().getODSVersionIsHigherOrEqualTo(14.0))
         collectionMetadataM.push_back(std::make_shared<Schemas>(getDatabase()));
 }

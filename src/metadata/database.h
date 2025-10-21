@@ -219,8 +219,6 @@ private:
 
     void configureCollections();
 
-    template <class T>  
-    T getCollection(NodeType type);
     template <class P, class T>  
     P getCollectionPtr(NodeType type);
 
