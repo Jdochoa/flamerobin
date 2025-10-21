@@ -127,7 +127,7 @@ wxString CreateDDLVisitor::getSuffixSql() const
 
 void CreateDDLVisitor::visitCollation(Collation& collation)
 {
-    preSqlM += "CREATE COLLATION " + collation.getName_() + " \n" +
+    preSqlM += "CREATE COLLATION " + collation.getSchemaName_() + collation.getName_() + " \n" +
         collation.getSource() + "\n; \n";
     postSqlM << getCommentOn(collation);
     sqlM = preSqlM + postSqlM;
@@ -186,27 +186,29 @@ void CreateDDLVisitor::visitColumn(Column& c)
 }
 
 template <class C, class M>
-void iterateit(CreateDDLVisitor* v, C mc, ProgressIndicator* pi)
+void CreateDDLVisitor::iterateit(C mc, ProgressIndicator* pi)
 {
-    wxASSERT(mc);
-
-    if (pi)
-    {
-        pi->setProgressMessage(_("Extracting ") + mc->getName_());
-        pi->stepProgress();
-        pi->initProgress(wxEmptyString, mc->getChildrenCount(), 0, 2);
-    }
-
-    for (typename MetadataCollection<M>::iterator it = mc->begin();
-        it != mc->end(); ++it)
-    {
+    //wxASSERT(mc);
+    if (mc) {
+        preSqlM << "/********************* "<< mc->getName_().Upper() <<" **********************/ \n\n";
         if (pi)
         {
-            checkProgressIndicatorCanceled(pi);
-            pi->setProgressMessage(_("Extracting ") + (*it)->getName_(), 2);
-            pi->stepProgress(1, 2);
+            pi->setProgressMessage(_("Extracting ") + mc->getName_());
+            pi->stepProgress();
+            pi->initProgress(wxEmptyString, mc->getChildrenCount(), 0, 2);
         }
-        (*it)->acceptVisitor(v);
+
+        for (typename MetadataCollection<M>::iterator it = mc->begin();
+            it != mc->end(); ++it)
+        {
+            if (pi)
+            {
+                checkProgressIndicatorCanceled(pi);
+                pi->setProgressMessage(_("Extracting ") + (*it)->getName_(), 2);
+                pi->stepProgress(1, 2);
+            }
+            (*it)->acceptVisitor(this);
+        }
     }
 }
 
@@ -218,61 +220,46 @@ void CreateDDLVisitor::visitDatabase(Database& d)
 
     try
     {
-        preSqlM << "/********************* USERS **********************/\n\n";
-        iterateit<UsersPtr, User>(this, d.getUsers(), progressIndicatorM);
+        iterateit<UsersPtr, User>(d.getUsers(), progressIndicatorM);
 
-        preSqlM << "/********************* COLLATES **********************/\n\n";
-        iterateit<CollationsPtr, Collation>(this, d.getCollations(), progressIndicatorM);
+        iterateit<CollationsPtr, Collation>(d.getCollations(), progressIndicatorM);
 
-        preSqlM << "/********************* ROLES **********************/\n\n";
-        iterateit<RolesPtr, Role>(this, d.getRoles(), progressIndicatorM);
+        iterateit<RolesPtr, Role>(d.getRoles(), progressIndicatorM);
 
-        preSqlM << "/********************* UDFS ***********************/\n\n";
-        iterateit<UDFsPtr, UDF>(this, d.getUDFs(), progressIndicatorM);
+        iterateit<UDFsPtr, UDF>(d.getUDFs(), progressIndicatorM);
         
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            preSqlM << "/********************* FUNCTIONS ***********************/\n\n";
-            iterateit<FunctionSQLsPtr, FunctionSQL>(this, d.getFunctionSQLs(), progressIndicatorM);
+            iterateit<FunctionSQLsPtr, FunctionSQL>(d.getFunctionSQLs(), progressIndicatorM);
         }
 
-        preSqlM << "/****************** SEQUENCES ********************/\n\n";
-        iterateit<GeneratorsPtr, Generator>(this, d.getGenerators(), progressIndicatorM);
+        iterateit<GeneratorsPtr, Generator>(d.getGenerators(), progressIndicatorM);
 
-        preSqlM << "/******************** DOMAINS *********************/\n\n";
-        iterateit<DomainsPtr, Domain>(this, d.getDomains(), progressIndicatorM);
+        iterateit<DomainsPtr, Domain>(d.getDomains(), progressIndicatorM);
 
-        preSqlM << "/******************* PROCEDURES ******************/\n\n";
-        iterateit<ProceduresPtr, Procedure>(this, d.getProcedures(), progressIndicatorM);
+        iterateit<ProceduresPtr, Procedure>(d.getProcedures(), progressIndicatorM);
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            preSqlM << "/******************* PACKAGES ******************/\n\n";
-            iterateit<PackagesPtr, Package>(this, d.getPackages(), progressIndicatorM);
+            iterateit<PackagesPtr, Package>(d.getPackages(), progressIndicatorM);
         }
       
-        preSqlM << "/******************** TABLES **********************/\n\n";
-        iterateit<TablesPtr, Table>(this, d.getTables(), progressIndicatorM);
+        iterateit<TablesPtr, Table>(d.getTables(), progressIndicatorM);
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(11.1)) {
-            iterateit<GTTablesPtr, GTTable>(this, d.getGTTables(), progressIndicatorM);
+            iterateit<GTTablesPtr, GTTable>(d.getGTTables(), progressIndicatorM);
         }
 
-        preSqlM << "/********************* VIEWS **********************/\n\n";
         // TODO: build dependecy tree first, and order views by it
         //       also include computed columns of tables?
-        iterateit<ViewsPtr, View>(this, d.getViews(), progressIndicatorM);
+        iterateit<ViewsPtr, View>(d.getViews(), progressIndicatorM);
 
-        preSqlM << "/******************* EXCEPTIONS *******************/\n\n";
-        iterateit<ExceptionsPtr, Exception>(this, d.getExceptions(), progressIndicatorM);
+        iterateit<ExceptionsPtr, Exception>(d.getExceptions(), progressIndicatorM);
 
-        preSqlM << "/******************** TRIGGERS ********************/\n\n";
-        iterateit<DMLTriggersPtr, DMLTrigger>(this, d.getDMLTriggers(), progressIndicatorM);
+        iterateit<DMLTriggersPtr, DMLTrigger>(d.getDMLTriggers(), progressIndicatorM);
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(11.1)) {
-            preSqlM << "/******************** DB TRIGGERS ********************/\n\n";
-            iterateit<DBTriggersPtr, DBTrigger>(this, d.getDBTriggers(), progressIndicatorM);
+            iterateit<DBTriggersPtr, DBTrigger>(d.getDBTriggers(), progressIndicatorM);
         }
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            preSqlM << "/******************** DDL TRIGGERS ********************/\n\n";
-            iterateit<DDLTriggersPtr, DDLTrigger>(this, d.getDDLTriggers(), progressIndicatorM);
+            iterateit<DDLTriggersPtr, DDLTrigger>(d.getDDLTriggers(), progressIndicatorM);
         }
     }
     catch (CancelProgressException&)

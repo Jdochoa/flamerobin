@@ -43,6 +43,9 @@ private:
 
 protected:
     wxString getCommentOn(MetadataItem& metadataitem);
+    template <class C, class M>
+    void iterateit( C mc, ProgressIndicator* pi);
+
 
 public:
     CreateDDLVisitor(ProgressIndicator* progressIndicator = 0);
