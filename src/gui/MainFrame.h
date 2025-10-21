@@ -123,6 +123,7 @@ public:
     void OnMenuCreatePackage(wxCommandEvent& event);
     void OnMenuCreateProcedure(wxCommandEvent& event);
     void OnMenuCreateRole(wxCommandEvent& event);
+    void OnMenuCreateSchema(wxCommandEvent& event);
     void OnMenuCreateTable(wxCommandEvent& event);
     void OnMenuCreateUDF(wxCommandEvent& event);
     void OnMenuCreateUser(wxCommandEvent& event);

@@ -48,6 +48,7 @@
 #include "metadata/role.h"
 #include "metadata/root.h"
 #include "metadata/server.h"
+#include "metadata/14_0/schema.h"
 #include "metadata/table.h"
 #include "metadata/trigger.h"
 #include "metadata/view.h"
@@ -323,6 +324,26 @@ void MainObjectMenuMetadataItemVisitor::visitRoles(Roles& roles)
     addSeparator();
     addRefreshItem();
 }
+
+void MainObjectMenuMetadataItemVisitor::visitSchema(Schema& schema)
+{
+    addDropItem(schema);
+    addSeparator();
+    addGenerateCodeMenu(schema);
+    addSeparator();
+    addRefreshItem();
+    addPropertiesItem();
+}
+
+void MainObjectMenuMetadataItemVisitor::visitSchemas(Schemas& schemas)
+{
+    addCreateItem();
+    addSeparator();
+    addGenerateCodeMenu(schemas);
+    addSeparator();
+    addRefreshItem();
+}
+
 
 void MainObjectMenuMetadataItemVisitor::visitSysRoles(SysRoles& sysRoles)
 {

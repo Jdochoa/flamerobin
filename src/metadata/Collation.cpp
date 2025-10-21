@@ -37,6 +37,7 @@
 #include "metadata/Collation.h"
 #include "metadata/database.h"
 #include "metadata/MetadataItemVisitor.h"
+#include "metadata/metadataitem.h"
 
 
 std::string Collation::getLoadStatement(bool list)
@@ -131,6 +132,7 @@ CharacterSet* Collation::getCharacterSet() const
     return dynamic_cast<CharacterSet*>(getParent());
 }
 
+
 int Collation::getAttributes()
 {
     return attributesM;
@@ -204,9 +206,9 @@ wxString Collation::getSource()
 
 wxString Collation::getAlterSql()
 {
-    return getDropSqlStatement()+"\n\n "
-        
-        "CREATE COLLATION " + getName_() + "\n" + getSource() + ";\n";
+    return getDropSqlStatement() + "\n\n "
+
+        "CREATE COLLATION " + getSchemaName_() + getName_() + "\n" + getSource() + ";\n";
 }
 
 void SysCollations::loadChildren()
@@ -250,6 +252,11 @@ Collations::Collations(DatabasePtr database)
 {
 }
 
+Collations::Collations(MetadataItem* parent)
+    : MetadataCollection<Collation>(ntCollations, parent, _("Collations"))
+{
+}
+
 void Collations::acceptVisitor(MetadataItemVisitor* visitor)
 {
     visitor->visitCollations(*this);
@@ -268,4 +275,46 @@ void Collations::load(ProgressIndicator* progressIndicator)
 const wxString Collations::getTypeName() const
 {
     return  "COLLATION_COLLECTION";
+}
+
+Collations14::Collations14(MetadataItem* schema)
+    : Collations(schema)
+{
+}
+
+void Collations14::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    visitor->visitCollations(*this);
+}
+
+void Collations14::load(ProgressIndicator* progressIndicator)
+{
+    DatabasePtr db = getDatabase();
+    wxString stmt(" Select RDB$COLLATION_NAME "
+        " from RDB$COLLATIONS  "
+        " where RDB$SYSTEM_FLAG = 0 "
+        "   and RDB$SCHEMA_NAME = '" + wx2std(getParent()->getName_(), db->getCharsetConverter()) + "' "
+        " Order By RDB$COLLATION_NAME ");
+    setItems(db->loadIdentifiers(stmt, progressIndicator));
+}
+
+Collation14::Collation14(MetadataItem* parent, const wxString& name, int id)
+    :Collation(parent, name, id)
+{
+
+}
+
+void Collation14::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    visitor->visitCollation(*this);
+}
+
+wxString Collation14::getSchemaName_() const
+{
+    return getParent()->getParent()->getName_() << ".";
+}
+
+wxString Collation14::getQuotedSchemaName() const
+{
+    return getParent()->getParent()->getQuotedName() << ".";
 }

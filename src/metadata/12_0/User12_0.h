@@ -138,7 +138,7 @@ public:
     Users12_0(DatabasePtr database);
     virtual void load(ProgressIndicator* progressIndicator);
 
-    virtual ItemType newItem(const wxString& name) {
+    ItemType newItem(const wxString& name) override{
         ItemType item(new User12_0(getDatabase(), name));
         return item;
     }

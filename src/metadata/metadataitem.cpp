@@ -790,6 +790,16 @@ bool MetadataItem::getIsSystem() const
     return isSystemM;
 }
 
+wxString MetadataItem::getSchemaName_() const
+{
+    return wxString();
+}
+
+wxString MetadataItem::getQuotedSchemaName() const
+{
+    return wxString();
+}
+
 bool MetadataItem::isSystem() const
 {
     return hasSystemPrefix(getName_()) || getIsSystem();

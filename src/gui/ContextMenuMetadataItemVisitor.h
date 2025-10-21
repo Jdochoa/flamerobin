@@ -35,16 +35,20 @@ public:
     explicit MainObjectMenuMetadataItemVisitor(wxMenu* menu);
     virtual ~MainObjectMenuMetadataItemVisitor();
 
+    virtual void visitCharacterSet(CharacterSet& charset);
+    virtual void visitCharacterSets(CharacterSets& charsets);
     virtual void visitColumn(Column& column);
+    virtual void visitCollation(Collation& collation);
+    virtual void visitCollations(Collations& coolations);
     virtual void visitDatabase(Database& database);
+    virtual void visitDomain(Domain& domain);
+    virtual void visitDomains(Domains& domains);
     virtual void visitDBTrigger(DBTrigger& trigger);
     virtual void visitDBTriggers(DBTriggers& triggers);
     virtual void visitDDLTrigger(DDLTrigger& trigger);
     virtual void visitDDLTriggers(DDLTriggers& triggers);
     virtual void visitDMLTrigger(DMLTrigger& trigger);
     virtual void visitDMLTriggers(DMLTriggers& triggers);
-    virtual void visitDomain(Domain& domain);
-    virtual void visitDomains(Domains& domains);
     virtual void visitException(Exception& exception);
     virtual void visitExceptions(Exceptions& exceptions);
     virtual void visitFunctionSQL(FunctionSQL& function);
@@ -63,6 +67,9 @@ public:
     virtual void visitRole(Role& role);
     virtual void visitRoles(Roles& roles);
     virtual void visitRoot(Root& root);
+    virtual void visitSchema(Schema& schema);
+    virtual void visitSchemas(Schemas& schemas);
+    virtual void visitSysCollations(SysCollations& collations);
     virtual void visitSysPackages(SysPackages& packages);
     virtual void visitSysRoles(SysRoles& roles);
     virtual void visitSysTables(SysTables& tables);
@@ -75,11 +82,6 @@ public:
     virtual void visitUsers(Users& users);
     virtual void visitView(View& view);
     virtual void visitViews(Views& views);
-    virtual void visitCharacterSet(CharacterSet& charset);
-    virtual void visitCharacterSets(CharacterSets& charsets);
-    virtual void visitCollation(Collation& collation);
-    virtual void visitSysCollations(SysCollations& collations);
-    virtual void visitCollations(Collations& coolations);
 
 protected:
     wxMenu* menuM;

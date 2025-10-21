@@ -56,6 +56,7 @@
 #include "metadata/Index.h"
 #include "metadata/package.h"
 #include "metadata/procedure.h"
+#include "metadata/role.h"
 #include "metadata/table.h"
 #include "metadata/trigger.h"
 #include "metadata/view.h"
@@ -70,12 +71,13 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
         collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
         collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
         collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
+        collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
         collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
     }
     else
     {
         //collectionMetadataM.push_back(std::make_shared<Charset>());
-        collectionMetadataM.push_back(std::make_shared<Collations>(getDatabase()));
+        collectionMetadataM.push_back(std::make_shared<Collations14>(this));
         collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
         collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));
         collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));

@@ -146,6 +146,7 @@ enum {
         Menu_CreatePackage,
         Menu_CreateProcedure,
         Menu_CreateRole,
+        Menu_CreateSchema,
         Menu_CreateTable,         
         Menu_CreateUDF,
         Menu_CreateUser,

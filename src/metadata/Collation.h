@@ -73,8 +73,17 @@ public:
 
     wxString getSource();
     wxString getAlterSql();
+};
 
+class Collation14 : public Collation
+{
+public:
+    Collation14(MetadataItem* parent, const wxString& name, int id = -1);
 
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+
+    wxString getSchemaName_() const override;
+    wxString getQuotedSchemaName() const override;
 
 };
 
@@ -98,10 +107,25 @@ protected:
     virtual void loadChildren();
 public:
     Collations(DatabasePtr database);
+    Collations(MetadataItem* parent);
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
     virtual const wxString getTypeName() const;
+};
+
+class Collations14 : public Collations
+{
+public:
+    Collations14(MetadataItem* schema);
+
+    ItemType newItem(const wxString& name) override {
+        ItemType item(new Collation14(this, name));
+        return item;
+    }
+
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+    void load(ProgressIndicator* progressIndicator);
 };
 
 #endif // FR_COLLATION_H

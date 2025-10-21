@@ -483,6 +483,7 @@ EVT_UPDATE_UI(Cmds::Menu_StartupDatabase, MainFrame::OnMenuUpdateIfDatabaseNotCo
     EVT_MENU(Cmds::Menu_CreatePackage,    MainFrame::OnMenuCreatePackage)
     EVT_MENU(Cmds::Menu_CreateProcedure,  MainFrame::OnMenuCreateProcedure)
     EVT_MENU(Cmds::Menu_CreateRole,       MainFrame::OnMenuCreateRole)
+    EVT_MENU(Cmds::Menu_CreateSchema,     MainFrame::OnMenuCreateSchema)
     EVT_MENU(Cmds::Menu_CreateTable,      MainFrame::OnMenuCreateTable)
     EVT_MENU(Cmds::Menu_CreateUDF,        MainFrame::OnMenuCreateUDF)
     EVT_MENU(Cmds::Menu_CreateUser,       MainFrame::OnMenuCreateUser)
@@ -687,6 +688,8 @@ void MainFrame::OnTreeItemActivate(wxTreeEvent& event)
             case ntSysRole:
             case ntIndex:
             case ntSysIndices:
+            case ntUser:
+            case ntSchema:
                 {
                     wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED,
                         Cmds::Menu_ObjectProperties);
@@ -1458,6 +1461,12 @@ void MainFrame::OnMenuCreateRole(wxCommandEvent& WXUNUSED(event))
 {
     showCreateTemplate(
         MetadataItemCreateStatementVisitor::getCreateRoleStatement());
+}
+
+void MainFrame::OnMenuCreateSchema(wxCommandEvent& WXUNUSED(event))
+{
+    showCreateTemplate(
+        MetadataItemCreateStatementVisitor::getCreateSchemaStatement());
 }
 
 void MainFrame::OnMenuCreateTable(wxCommandEvent& WXUNUSED(event))

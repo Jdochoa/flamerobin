@@ -87,7 +87,7 @@ wxString getNameOfType(NodeType type);
 void initializeLockCount(MetadataItem* item, unsigned count);
 void initializeLockCount(MetadataItemPtr item, unsigned count);
 
-class MetadataItem: public Subject, public ObjectWithHandle<MetadataItem>,
+class MetadataItem : public Subject, public ObjectWithHandle<MetadataItem>,
     public ProcessableObject//, std::enable_shared_from_this <MetadataItem>
 {
 private:
@@ -137,7 +137,7 @@ public:
     virtual void lockSubject();
     virtual void unlockSubject();
 
-    void getDependencies(std::vector<Dependency>& list, bool ofObject, bool fieldsOnly=false);  // load from db
+    void getDependencies(std::vector<Dependency>& list, bool ofObject, bool fieldsOnly = false);  // load from db
     void getDependencies(std::vector<Dependency>& list, bool ofObject, const wxString& field);  // load from db
     void getDependenciesPivoted(std::vector<DependencyField>& list);
 
@@ -160,7 +160,7 @@ public:
     bool propertiesLoaded() const;
     void setChildrenLoaded(bool loaded);
 
-    virtual bool getChildren(std::vector<MetadataItem *>& temp);
+    virtual bool getChildren(std::vector<MetadataItem*>& temp);
     virtual size_t getChildrenCount() const { return 0; };
 
     // returns complete DROP SQL statement
@@ -181,6 +181,8 @@ public:
     virtual void setMetadataId(int id);
     virtual void setIsSystem(bool isSystem);
     virtual bool getIsSystem() const;
+    virtual wxString getSchemaName_() const;
+    virtual wxString getQuotedSchemaName() const;
 
     // returns the name of the data type (f. ex. TABLE)
     virtual const wxString getTypeName() const;
