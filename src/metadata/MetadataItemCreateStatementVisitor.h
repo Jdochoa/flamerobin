@@ -45,6 +45,7 @@ public:
     static wxString getCreatePackageStatement();
     static wxString getCreateProcedureStatement();
     static wxString getCreateRoleStatement();
+    static wxString getCreateSchemaStatement();
     static wxString getCreateTableStatement();
     static wxString getCreateUDFStatement();
     static wxString getCreateUserStatement();
@@ -65,6 +66,7 @@ public:
     virtual void visitPackages(Packages& packages);
     virtual void visitProcedures(Procedures& procedures);
     virtual void visitRoles(Roles& roles);
+    virtual void visitSchemas(Schemas& schemas);
     virtual void visitTables(Tables& tables);
     virtual void visitUDFs(UDFs& functions);
     virtual void visitUsers(Users& Users);

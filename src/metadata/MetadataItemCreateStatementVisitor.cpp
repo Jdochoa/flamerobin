@@ -166,6 +166,19 @@ wxString MetadataItemCreateStatementVisitor::getCreateRoleStatement()
     return  "CREATE ROLE role_name;\n";
 }
 
+wxString MetadataItemCreateStatementVisitor::getCreateSchemaStatement()
+{
+    StatementBuilder sb;
+    sb << kwCREATE << ' ' << kwIF << ' ' << kwNOT << ' ' << kwEXISTS << ' ' << kwSCHEMA << " schema_name "
+        << StatementBuilder::NewLine
+        << "[" << kwDEFAULT << ' ' << kwCHARACTER << ' ' << kwSET << " <character set name> ]"
+        << StatementBuilder::NewLine
+        << "[" << kwDEFAULT << ' ' << kwSQL << ' ' << kwSECURITY << "{DEFINER | INVOKER} ]"
+        << StatementBuilder::NewLine << ";";
+    
+    return sb;
+}
+
 /*static*/
 wxString MetadataItemCreateStatementVisitor::getCreateTableStatement()
 {
@@ -362,6 +375,11 @@ void MetadataItemCreateStatementVisitor::visitProcedures(
 void MetadataItemCreateStatementVisitor::visitRoles(Roles& /*roles*/)
 {
     statementM = getCreateRoleStatement();
+}
+
+void MetadataItemCreateStatementVisitor::visitSchemas(Schemas& /*schemas*/)
+{
+    statementM = getCreateSchemaStatement();
 }
 
 void MetadataItemCreateStatementVisitor::visitTables(Tables& /*tables*/)
