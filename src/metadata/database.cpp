@@ -48,7 +48,7 @@
 #include "engine/MetadataLoader.h"
 #include "MasterPassword.h"
 
-#include "metadata/MetadataRegistry.h"
+#include "metadata/MetadataContainer.h"
 #include "metadata/CharacterSet.h"
 #include "metadata/column.h"
 #include "metadata/database.h"
@@ -336,14 +336,8 @@ void Database::getIdentifiers(std::vector<Identifier>& temp)
     CharacterSetsPtr m = getCharacterSets();
     std::transform(m->begin(), m->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-
-    getMetadataContainer()->forEachItem([&temp](const MetadataItemPtr& item) {
-        if (item) {
-            temp.push_back(item->getName_());
-        }
-        }
-    );
     
+    getMetadataContainer()->getIdentifiers(temp);   
 }
 
 void Database::getDatabaseTriggers(std::vector<Trigger *>& list)
@@ -395,10 +389,7 @@ wxArrayString Database::getCollations(const wxString& charset)
 
 DomainPtr Database::getDomain(const wxString& name)
 {
-    if (MetadataItem::hasSystemPrefix(name))
-        return getSysDomains()->getDomain(name);
-    else
-        return getDomains()->getDomain(name);
+    return getMetadataContainer()->getDomain(name);
 }
 
 bool Database::isDefaultCollation(const wxString& charset,
@@ -462,29 +453,17 @@ DatabasePtr Database::getDatabase() const
 MetadataItem* Database::findByName(const wxString& name)
 {
     if (!isConnected())
-        return 0;
-
-    for (int n = (int)ntTable; n < (int)ntLastType; n++)
-    {
-        MetadataItem* m = findByNameAndType((NodeType)n, name);
-        if (m)
-            return m;
-    }
-    return 0;
+        return nullptr;
+    
+    return getMetadataContainer()->findByName(name).get();
 }
 
 MetadataItem* Database::findByIdAndType(NodeType nt, const int id)
 {
-    if (!isConnected())
-        return 0;
-    switch (nt)
-    {
-        case ntCharacterSet:
-            return getCharacterSets()->findByMetadataId(id).get();
-            break;
-        default:
-            return 0;
+    if (isConnected()) {
+        return getMetadataContainer()->findByTypeAndId(nt, id).get();
     }
+    return nullptr;
 }
 
 MetadataItem* Database::findByNameAndType(NodeType nt, const wxString& name)
@@ -495,28 +474,18 @@ MetadataItem* Database::findByNameAndType(NodeType nt, const wxString& name)
                 return this;
             else {
                 NodeType type = static_cast<NodeType>(static_cast<int>(nt) + 1);
-                return getMetadataContainer()->findByTypeAndName(type, name);
+                return getMetadataContainer()->findByTypeAndName(type, name).get();
             }
         }
         else
-            return 0;
+            return nullptr;
     }
-    else
-        return 0;
+    return nullptr;
 }
 
 Relation* Database::findRelation(const Identifier& name)
 {
-    wxString s(name.get());
-    if (TablePtr t = getTables()->findByName(s))
-        return t.get();
-    if (ViewPtr v = getViews()->findByName(s))
-        return v.get();
-    if (TablePtr t = getSysTables()->findByName(s))
-        return t.get();
-    if (TablePtr t = getGTTables()->findByName(s))
-        return t.get();
-    return 0;
+    return getMetadataContainer()->findRelation(name).get();
 }
 
 Relation* Database::getRelationForTrigger(DMLTrigger* trigger)
@@ -1544,66 +1513,6 @@ bool Database::showSystemCharacterSet()
     return b;
 }
 
-bool Database::showSystemIndices()
-{
-    const wxString SHOW_SYSINDICES = "ShowSystemIndices";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSINDICES, b))
-        b = config().get(SHOW_SYSINDICES, true);
-
-    return b;
-}
-
-bool Database::showSystemDomains()
-{
-    const wxString SHOW_SYSDOMAINS = "ShowSystemDomains";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSDOMAINS, b))
-        b = config().get(SHOW_SYSDOMAINS, true);
-
-    return b;
-}
-
-bool Database::showSystemPackages()
-{
-    if (!getInfo().getODSVersionIsHigherOrEqualTo(12, 0))
-        return false;
-
-    const wxString SHOW_SYSPACKAGES = "ShowSystemPackages";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSPACKAGES, b))
-        b = config().get(SHOW_SYSPACKAGES, true);
-
-    return b;
-}
-
-bool Database::showSystemRoles()
-{
-    if (!getInfo().getODSVersionIsHigherOrEqualTo(11, 1))
-        return false;
-
-    const wxString SHOW_SYSROLES = "ShowSystemRoles";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSROLES, b))
-        b = config().get(SHOW_SYSROLES, true);
-
-    return b;
-}
-
-bool Database::showSystemTables()
-{
-    const wxString SHOW_SYSTABLES = "ShowSystemTables";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSTABLES, b))
-        b = config().get(SHOW_SYSTABLES, true);
-
-    return b;
-}
 
 bool Database::showOneNodeIndices()
 {
@@ -1641,10 +1550,10 @@ void Database::configureCollections()
         if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
             getMetadataContainer()->addCollection(std::make_shared<GTTables>(getDatabase()));
 
-        if (showOneNodeIndices() && showSystemIndices())
+        if (showOneNodeIndices())
             getMetadataContainer()->addCollection(std::make_shared<Indices>(getDatabase()));
         else
-                getMetadataContainer()->addCollection(std::make_shared<UsrIndices>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<UsrIndices>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
             getMetadataContainer()->addCollection(std::make_shared<Packages>(getDatabase()));
@@ -1656,20 +1565,15 @@ void Database::configureCollections()
     if (getInfo().getODS() < 14) {
         // Only push back system objects when they should be shown
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            if (showSystemPackages())
                 getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
         }
-        if (showSystemDomains())
-            getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
 
-        if (showSystemIndices() && !showOneNodeIndices())
-            getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
 
-        if (showSystemRoles())
-            getMetadataContainer()->addCollection(std::make_shared<SysRoles>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysRoles>(getDatabase()));
 
-        if (showSystemTables())
-            getMetadataContainer()->addCollection(std::make_shared<SysTables>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysTables>(getDatabase()));
 
         getMetadataContainer()->addCollection(std::make_shared<Tables>(getDatabase()));
 

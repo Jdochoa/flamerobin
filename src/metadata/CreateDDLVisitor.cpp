@@ -34,6 +34,7 @@
 #include <vector>
 
 #include "core/ProgressIndicator.h"
+#include "metadata/MetadataContainer.h"
 #include "metadata/column.h"
 #include "metadata/Collation.h"
 #include "metadata/constraints.h"
@@ -186,26 +187,26 @@ void CreateDDLVisitor::visitColumn(Column& c)
 }
 
 template <class C, class M>
-void CreateDDLVisitor::iterateit(C mc, ProgressIndicator* pi)
+void CreateDDLVisitor::iterateit(C mc)
 {
     //wxASSERT(mc);
     if (mc) {
         preSqlM << "/********************* "<< mc->getName_().Upper() <<" **********************/ \n\n";
-        if (pi)
+        if (progressIndicatorM)
         {
-            pi->setProgressMessage(_("Extracting ") + mc->getName_());
-            pi->stepProgress();
-            pi->initProgress(wxEmptyString, mc->getChildrenCount(), 0, 2);
+            progressIndicatorM->setProgressMessage(_("Extracting ") + mc->getName_());
+            progressIndicatorM->stepProgress();
+            progressIndicatorM->initProgress(wxEmptyString, mc->getChildrenCount(), 0, 2);
         }
 
         for (typename MetadataCollection<M>::iterator it = mc->begin();
             it != mc->end(); ++it)
         {
-            if (pi)
+            if (progressIndicatorM)
             {
-                checkProgressIndicatorCanceled(pi);
-                pi->setProgressMessage(_("Extracting ") + (*it)->getName_(), 2);
-                pi->stepProgress(1, 2);
+                checkProgressIndicatorCanceled(progressIndicatorM);
+                progressIndicatorM->setProgressMessage(_("Extracting ") + (*it)->getName_(), 2);
+                progressIndicatorM->stepProgress(1, 2);
             }
             (*it)->acceptVisitor(this);
         }
@@ -220,46 +221,48 @@ void CreateDDLVisitor::visitDatabase(Database& d)
 
     try
     {
-        iterateit<UsersPtr, User>(d.getUsers(), progressIndicatorM);
+        iterateit<UsersPtr, User>(d.getUsers());
 
-        iterateit<CollationsPtr, Collation>(d.getCollations(), progressIndicatorM);
+        //iterateit<UsersPtr, User>(d.getMetadataContainer()->getCollectionPtr<UsersPtr, Users>(ntUsers));
 
-        iterateit<RolesPtr, Role>(d.getRoles(), progressIndicatorM);
+        iterateit<CollationsPtr, Collation>(d.getCollations());
 
-        iterateit<UDFsPtr, UDF>(d.getUDFs(), progressIndicatorM);
+        iterateit<RolesPtr, Role>(d.getRoles());
+
+        iterateit<UDFsPtr, UDF>(d.getUDFs());
         
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            iterateit<FunctionSQLsPtr, FunctionSQL>(d.getFunctionSQLs(), progressIndicatorM);
+            iterateit<FunctionSQLsPtr, FunctionSQL>(d.getFunctionSQLs());
         }
 
-        iterateit<GeneratorsPtr, Generator>(d.getGenerators(), progressIndicatorM);
+        iterateit<GeneratorsPtr, Generator>(d.getGenerators());
 
-        iterateit<DomainsPtr, Domain>(d.getDomains(), progressIndicatorM);
+        iterateit<DomainsPtr, Domain>(d.getDomains());
 
-        iterateit<ProceduresPtr, Procedure>(d.getProcedures(), progressIndicatorM);
+        iterateit<ProceduresPtr, Procedure>(d.getProcedures());
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            iterateit<PackagesPtr, Package>(d.getPackages(), progressIndicatorM);
+            iterateit<PackagesPtr, Package>(d.getPackages());
         }
       
-        iterateit<TablesPtr, Table>(d.getTables(), progressIndicatorM);
+        iterateit<TablesPtr, Table>(d.getTables());
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(11.1)) {
-            iterateit<GTTablesPtr, GTTable>(d.getGTTables(), progressIndicatorM);
+            iterateit<GTTablesPtr, GTTable>(d.getGTTables());
         }
 
         // TODO: build dependecy tree first, and order views by it
         //       also include computed columns of tables?
-        iterateit<ViewsPtr, View>(d.getViews(), progressIndicatorM);
+        iterateit<ViewsPtr, View>(d.getViews());
 
-        iterateit<ExceptionsPtr, Exception>(d.getExceptions(), progressIndicatorM);
+        iterateit<ExceptionsPtr, Exception>(d.getExceptions());
 
-        iterateit<DMLTriggersPtr, DMLTrigger>(d.getDMLTriggers(), progressIndicatorM);
+        iterateit<DMLTriggersPtr, DMLTrigger>(d.getDMLTriggers());
 
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(11.1)) {
-            iterateit<DBTriggersPtr, DBTrigger>(d.getDBTriggers(), progressIndicatorM);
+            iterateit<DBTriggersPtr, DBTrigger>(d.getDBTriggers());
         }
         if (d.getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-            iterateit<DDLTriggersPtr, DDLTrigger>(d.getDDLTriggers(), progressIndicatorM);
+            iterateit<DDLTriggersPtr, DDLTrigger>(d.getDDLTriggers());
         }
     }
     catch (CancelProgressException&)

@@ -176,6 +176,7 @@ class Procedures;
 typedef std::shared_ptr<Procedures> ProceduresPtr;
 
 class Relation;
+typedef std::shared_ptr<Relation> RelationPtr;
 
 class Role;
 typedef std::shared_ptr<Role> RolePtr;

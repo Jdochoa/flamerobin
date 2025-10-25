@@ -34,7 +34,10 @@
 #include <chrono>
 #include <thread>
 
-#include "MetadataRegistry.h"
+#include "MetadataContainer.h"
+#include "metadata/domain.h"
+#include "metadata/table.h"
+#include "metadata/view.h"
 #include "metadata/14_0/schema.h"
 
 MetadataContainer::MetadataContainer() 
@@ -59,17 +62,28 @@ void MetadataContainer::getCollections(std::vector<MetadataItem*>& temp, bool sy
 MetadataItemPtr MetadataContainer::findByName(const wxString& name) const 
 {
     for (const auto& col : collectionsM) {
-        /*if (MetadataItemPtr item = collection->findByName_(name)) { return item;}*/
+        if (col) {
+            return col->findByName_(name);
+        }
     }
     return nullptr;
 }
 
-MetadataItem* MetadataContainer::findByTypeAndName(NodeType nt, const wxString& name) 
+MetadataItemPtr MetadataContainer::findByTypeAndName(NodeType nt, const wxString& name) 
 {
     for (const auto& col : collectionsM) {
         if (col->getType() == nt) {
-            //return std::make_shared<MetadataItem>( col->findByName_(name).get());
-            return col->findByName_(name).get();
+            return col->findByName_(name);
+        }
+    }
+    return nullptr;
+}
+
+MetadataItemPtr MetadataContainer::findByTypeAndId(NodeType nt, int id)
+{
+    for (const auto& col : collectionsM) {
+        if (col->getType() == nt) {
+            return col->findByMetadataId_(id);
         }
     }
     return nullptr;
@@ -86,6 +100,58 @@ std::vector<wxString> MetadataContainer::getAllNames() const
         );
     }
     return list;
+}
+
+void MetadataContainer::getIdentifiers(std::vector<Identifier>& temp)
+{
+    forEachCollection([&temp](const MetadataCollectionBasePtr& item) {
+        if (item) {
+            item->forEachItem([&temp](const MetadataItemPtr& item) {
+                if (item) {
+                    temp.push_back(item->getIdentifier());
+                }
+                });
+        }
+        }
+    );
+}
+
+DomainPtr MetadataContainer::getDomain(const wxString& name)
+{
+    if (MetadataItem::hasSystemPrefix(name))
+        return getCollectionPtr<SysDomainsPtr, SysDomains>(ntSysDomains)->getDomain(name);
+    else
+        return getCollectionPtr<DomainsPtr, Domains>(ntDomains)->getDomain(name);    
+}
+
+RelationPtr MetadataContainer::findRelation(const Identifier& name)
+{
+    wxString s(name.get());
+    TablePtr t;
+    t = getCollectionPtr<TablesPtr, Tables>(ntTables)->findByName(s);
+    if (t)
+        return std::static_pointer_cast<Relation>(t);
+    else {
+        t = getCollectionPtr<GTTablesPtr, GTTables>(ntGTTs)->findByName(s);
+        if (t)
+            return std::static_pointer_cast<Relation>(t);
+        else
+        {
+            ViewPtr v = getCollectionPtr<ViewsPtr, Views>(ntViews)->findByName(s);
+            if (v)
+                return std::static_pointer_cast<Relation>(v);
+            else
+            {
+                t = getCollectionPtr<SysTablesPtr, SysTables>(ntSysTables)->findByName(s);
+                if (t)
+                    return std::static_pointer_cast<Relation>(t);
+                else
+                    return nullptr;
+            }
+        }
+
+    }
+    return nullptr;
 }
 
 MetadataCollectionBasePtrs::iterator MetadataContainer::begin()
@@ -135,7 +201,7 @@ void MetadataContainer::unlockSubject() {
     }
 }
 
-void MetadataContainer::forEachItem(
+void MetadataContainer::forEachCollection(
         const std::function<void(const MetadataCollectionBasePtr&)>& func) const
 {
     for (const auto& col : collectionsM) {

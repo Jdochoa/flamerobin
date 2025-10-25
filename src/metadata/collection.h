@@ -101,6 +101,7 @@ public:
 
     virtual void forEachItem(const std::function<void(const MetadataItemPtr&)>& func) const = 0;
     virtual MetadataItemPtr findByName_(const wxString& name) const = 0;
+    virtual MetadataItemPtr findByMetadataId_(const int& id) const = 0;
     virtual void remove(MetadataItem* item) = 0;
     virtual void insert_(const wxString& name) = 0;
     virtual wxString getConfigShowValue() { return wxString(); };
@@ -307,9 +308,20 @@ public:
         }
     }
 
-    MetadataItemPtr findByName_(const wxString& name) const override {
+    MetadataItemPtr findByName_(const wxString& name) const override 
+    {
         for (const auto& item : itemsM) {
             if (item && item->getName_() == name) {
+                return std::static_pointer_cast<MetadataItem>(item);
+            }
+        }
+        return nullptr;
+    }
+
+    MetadataItemPtr findByMetadataId_(const int& id) const override 
+    {
+        for (const auto& item : itemsM) {
+            if (item && item->getMetadataId() == id) {
                 return std::static_pointer_cast<MetadataItem>(item);
             }
         }

@@ -44,7 +44,7 @@ private:
 protected:
     wxString getCommentOn(MetadataItem& metadataitem);
     template <class C, class M>
-    void iterateit( C mc, ProgressIndicator* pi);
+    void iterateit( C mc);
 
 
 public:

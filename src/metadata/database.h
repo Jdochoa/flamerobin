@@ -212,11 +212,6 @@ private:
     mutable unsigned idM;
 
     bool showSystemCharacterSet();
-    bool showSystemIndices();
-    bool showSystemDomains();
-    bool showSystemPackages();
-    bool showSystemRoles();
-    bool showSystemTables();
     bool showOneNodeIndices();
 
     void configureCollections();
@@ -242,6 +237,7 @@ public:
     DDLTriggersPtr getDDLTriggers();
     DMLTriggersPtr getDMLTriggers();
     DomainsPtr getDomains();
+    DomainPtr getDomain(const wxString& name);
     ExceptionsPtr getExceptions();
     FunctionSQLsPtr getFunctionSQLs();
     GTTablesPtr getGTTables();
@@ -275,7 +271,6 @@ public:
     wxArrayString loadIdentifiers(const wxString& loadStatement,
         ProgressIndicator* progressIndicator = 0);
 
-    DomainPtr getDomain(const wxString& name);
 
     void loadGeneratorValues();
     Relation* getRelationForTrigger(DMLTrigger* trigger);

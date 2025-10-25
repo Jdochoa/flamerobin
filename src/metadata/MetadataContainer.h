@@ -58,25 +58,30 @@ public:
     void dropObject(MetadataItem* object);
     void addObject(NodeType type, const wxString& name);
     void addCollection(const std::shared_ptr<MetadataCollectionBase>& collection);
+
     ContainerType getCollections() const { return collectionsM; }
     void getCollections(std::vector<MetadataItem*>& temp, bool system);
     MetadataItemPtr findByName(const wxString& name) const;
-    MetadataItem* findByTypeAndName(NodeType nt, const wxString& name);
+    MetadataItemPtr findByTypeAndName(NodeType nt, const wxString& name);
+    MetadataItemPtr findByTypeAndId(NodeType nt, int id);
     std::vector<wxString> getAllNames() const;
+    void getIdentifiers(std::vector<Identifier>& temp);
+    DomainPtr getDomain(const wxString& name);
+    RelationPtr findRelation(const Identifier& name);
+
+
 
     MetadataCollectionBasePtrs::iterator begin();
     MetadataCollectionBasePtrs::iterator end();
     MetadataCollectionBasePtrs::const_iterator begin() const;
     MetadataCollectionBasePtrs::const_iterator end() const;
-
-
+    size_t capacity() const;
     bool empty() const;
     size_t size() const;
-    size_t capacity() const;
 
     void lockSubject();
     void unlockSubject();
-    void forEachItem(const std::function<void(const MetadataCollectionBasePtr&)>& func) const;
+    void forEachCollection(const std::function<void(const MetadataCollectionBasePtr&)>& func) const;
 
     template <class P, class T>
     P getCollectionPtr(NodeType type) {

@@ -46,7 +46,7 @@
 #include "metadata/14_0/schema.h"
 #include "metadata/MetadataItemVisitor.h"
 
-#include "metadata/MetadataRegistry.h"
+#include "metadata/MetadataContainer.h"
 //#include "metadata/Charset.h"
 #include "metadata/Collation.h"
 #include "metadata/domain.h"
