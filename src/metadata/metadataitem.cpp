@@ -814,7 +814,7 @@ bool MetadataItem::hasSystemPrefix(const wxString& name)
 
 wxString MetadataItem::getDropSqlStatement() const
 {
-    return "DROP " + getTypeName() + " " + getQuotedName() + ";";
+    return "DROP " + getTypeName() + " " + getQuotedSchemaName() + getQuotedName() + ";";
 }
 
 wxString MetadataItem::getAlterSqlStatement()

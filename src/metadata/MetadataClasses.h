@@ -147,6 +147,10 @@ class MetadataCollection;
 typedef std::shared_ptr<MetadataCollection<class T>> MetadataCollectionPtr;
 typedef std::vector<std::shared_ptr<MetadataCollectionBase>> collectionMetadata;
 
+class MetadataContainer;
+typedef std::shared_ptr<MetadataContainer> MetadataContainerPtr;
+
+
 class Method;
 typedef std::shared_ptr<Method> MethodPtr;
 typedef std::vector<MethodPtr> MethodPtrs;

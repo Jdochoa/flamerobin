@@ -39,12 +39,11 @@ class Schema : public MetadataItem,
     public std::enable_shared_from_this<Schema>
 {
 private:
-    collectionMetadata collectionMetadataM;
+    MetadataContainerPtr metadataContainerM;
     wxString characterSetNameM; 
     wxString characterSetSchemaNameM;
 
 
-    void loadCollections(ProgressIndicator* progressIndicator);
 protected:
     virtual void loadProperties();
 
@@ -67,9 +66,11 @@ public:
     virtual wxString getCharacterSetName() const;
     virtual void setCharacterSetSchemaName(const wxString& characterset);
     virtual wxString getCharacterSetSchemaName() const;
+    MetadataContainerPtr getMetadataContainer();
+    void loadCollections(ProgressIndicator* pi);
 
-    /*void getCollections(std::vector<MetadataItem*>& temp, bool system);
-    MetadataCollectionPtrs getCollections();
+    /*void getSetOfCollections(std::vector<MetadataItem*>& temp, bool system);
+    
     
     virtual wxString getDropSqlStatement() const;
     virtual wxString getAlterSqlStatement();

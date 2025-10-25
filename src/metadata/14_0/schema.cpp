@@ -28,7 +28,6 @@
 // need because it includes almost all "standard" wxWindows headers
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
-#include "schema.h"
 #endif
 
 // needed for platform independent EOL
@@ -47,6 +46,7 @@
 #include "metadata/14_0/schema.h"
 #include "metadata/MetadataItemVisitor.h"
 
+#include "metadata/MetadataRegistry.h"
 //#include "metadata/Charset.h"
 #include "metadata/Collation.h"
 #include "metadata/domain.h"
@@ -65,33 +65,34 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
     : MetadataItem(ntSchema, parent, name),
     characterSetNameM(wxEmptyString), characterSetSchemaNameM(wxEmptyString)
 {
+    metadataContainerM = std::make_shared<MetadataContainer>();
     ensurePropertiesLoaded();
     if (isSystem() )
     {
-        collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysRoles>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<SysTables>(getDatabase()));
     }
     else
     {
-        //collectionMetadataM.push_back(std::make_shared<Charset>());
-        collectionMetadataM.push_back(std::make_shared<Collations14>(this));
-        collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Generators>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<GTTables>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<UDFs>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Indices>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Packages>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Procedures>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Tables>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<DDLTriggers>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<DBTriggers>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<DMLTriggers>(getDatabase()));
-        collectionMetadataM.push_back(std::make_shared<Views>(getDatabase()));
+        //getSetOfCollections()->addCollection(std::make_shared<Charset>());
+        getMetadataContainer()->addCollection(std::make_shared<Collations14>(this));
+        getMetadataContainer()->addCollection(std::make_shared<Domains>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Exceptions>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<FunctionSQLs>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Generators>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<GTTables>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<UDFs>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Indices>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Packages>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Procedures>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Tables>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<DDLTriggers>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<DBTriggers>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<DMLTriggers>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Views>(getDatabase()));
     }
 }
 
@@ -106,40 +107,33 @@ Schema::~Schema()
 
 MetadataCollectionBasePtrs::iterator Schema::begin()
 {
-    return collectionMetadataM.begin();
+    return getMetadataContainer()->begin();
 }
 MetadataCollectionBasePtrs::iterator Schema::end()
 {
-    return collectionMetadataM.end();
+    return getMetadataContainer()->end();
 }
 MetadataCollectionBasePtrs::const_iterator Schema::begin() const
 {
-    return collectionMetadataM.begin();
+    return  metadataContainerM.get()->begin();
 }
 MetadataCollectionBasePtrs::const_iterator Schema::end() const
 {
-    return collectionMetadataM.end();
+    return metadataContainerM.get()->end();
 }
 
 bool Schema::getChildren(std::vector<MetadataItem*>& temp)
 {
-    if (collectionMetadataM.empty())
+    if (getMetadataContainer()->empty())
         return false;
+    getMetadataContainer()->getCollections(temp, true);
 
-    //collectionMetadataM.getChildren(temp);
-    //std::transform(collectionMetadataM.begin(), collectionMetadataM.end(),
-    //    std::back_inserter(temp), std::mem_fn(&ItemType::get));
-    for (const auto& m : collectionMetadataM) {
-        temp.push_back(&(*m));
-    }
-
-    return !collectionMetadataM.empty() ;
+    return !getMetadataContainer()->empty() ;
 }
 
 size_t Schema::getChildrenCount() const
 {
-    //return methodsM.size();
-    return collectionMetadataM.size();
+    return  metadataContainerM->size();
 }
 
 void Schema::setCharacterSetName(const wxString& characterset)
@@ -160,6 +154,11 @@ void Schema::setCharacterSetSchemaName(const wxString& characterset)
 wxString Schema::getCharacterSetSchemaName() const
 {
     return characterSetSchemaNameM;
+}
+
+MetadataContainerPtr Schema::getMetadataContainer()
+{
+    return metadataContainerM;
 }
 
 void Schema::loadProperties()
@@ -217,52 +216,17 @@ void Schema::loadChildren()
 
 void Schema::lockChildren()
 {
-    for (const auto& m : collectionMetadataM) {
-        m->lockSubject();
-    }
+    getMetadataContainer()->lockSubject();
 }
 
 void Schema::unlockChildren()
 {
-    for (const auto& m : collectionMetadataM) {
-        m->unlockSubject();
-    }
+    getMetadataContainer()->unlockSubject();
 }
 
-void Schema::loadCollections(ProgressIndicator* progressIndicator)
+void Schema::loadCollections(ProgressIndicator* pi)
 {
-    struct ProgressIndicatorHelper
-    {
-    private:
-        ProgressIndicator* progressIndicatorM;
-    public:
-        ProgressIndicatorHelper(ProgressIndicator* progressIndicator)
-            : progressIndicatorM(progressIndicator) {
-        }
-        void init(wxString collectionName, int stepsTotal, int currentStep)
-        {
-            if (progressIndicatorM)
-            {
-                wxString msg(wxString::Format(_("Loading %s..."),
-                    collectionName.c_str()));
-                progressIndicatorM->initProgress(msg, stepsTotal, currentStep, 1);
-            }
-        }
-    };
-    
-    const int collectionCount = collectionMetadataM.capacity();
-    std::string loadStmt;
-    ProgressIndicatorHelper pih(progressIndicator);
-
-    
-    MetadataLoader* loader = getDatabase()->getMetadataLoader();
-    MetadataLoaderTransaction tr(loader);
-    SubjectLocker lock(this);
-    for (const auto& m : collectionMetadataM) {
-        
-        pih.init(m->getTypeName(), collectionCount, 0);
-        m->load(progressIndicator);
-    }
+    getMetadataContainer()->loadCollections(pi, getDatabase());
 }
 
 void Schema::acceptVisitor(MetadataItemVisitor* visitor)

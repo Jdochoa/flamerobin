@@ -1599,7 +1599,7 @@ void MainFrame::showCreateTemplate(const wxString& statement)
 void MainFrame::OnMenuCreateCollation(wxCommandEvent& WXUNUSED(event))
 {
     showCreateTemplate(
-        MetadataItemCreateStatementVisitor::getCreateCollationStatment());
+        MetadataItemCreateStatementVisitor::getCreateCollationStatment(" "));
 }
 
 void MainFrame::OnMenuAddColumn(wxCommandEvent& WXUNUSED(event))

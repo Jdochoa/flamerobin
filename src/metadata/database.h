@@ -32,6 +32,8 @@
 
 #include "metadata/MetadataClasses.h"
 #include "metadata/metadataitem.h"
+//#include "metadata/MetadataRegistry.h"
+
 
 class MetadataLoader;
 class ProgressIndicator;
@@ -189,7 +191,7 @@ private:
 
     CharacterSetsPtr characterSetsM;
 
-    collectionMetadata collectionMetadataM;
+    MetadataContainerPtr metadataContainerM;
 
     // copy constructor implementation removed since it's no longer needed
     // (Server uses a vector of std::shared_ptr<Database> now)
@@ -219,8 +221,6 @@ private:
 
     void configureCollections();
 
-    template <class P, class T>  
-    P getCollectionPtr(NodeType type);
 
     inline void checkConnected(const wxString& operation) const;
 protected:
@@ -235,6 +235,7 @@ public:
     virtual bool getChildren(std::vector<MetadataItem *>& temp);
     void getCollections(std::vector<MetadataItem *>& temp, bool system);
 
+    MetadataContainerPtr getMetadataContainer() const;
     CharacterSetsPtr getCharacterSets();
     CollationsPtr getCollations();
     DBTriggersPtr getDBTriggers();

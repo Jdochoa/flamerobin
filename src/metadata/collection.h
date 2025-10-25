@@ -29,7 +29,10 @@
 #include <vector>
 #include <functional>
 
+#include "config/DatabaseConfig.h"
+#include "core/ProgressIndicator.h"
 #include "metadata/database.h"
+#include "metadata/metadataitem.h"
 
 class MetadataCollectionBase : public MetadataItem
 {
@@ -98,7 +101,20 @@ public:
 
     virtual void forEachItem(const std::function<void(const MetadataItemPtr&)>& func) const = 0;
     virtual MetadataItemPtr findByName_(const wxString& name) const = 0;
+    virtual void remove(MetadataItem* item) = 0;
+    virtual void insert_(const wxString& name) = 0;
+    virtual wxString getConfigShowValue() { return wxString(); };
 
+    virtual bool showCollection()
+    {
+        wxString confValue = getConfigShowValue();
+        bool b;
+        if (!DatabaseConfig(getDatabase().get(), config()).getValue(confValue, b))
+            b = config().get(confValue, true);
+
+        return b;
+    }
+    ;
 
 };
 
@@ -169,8 +185,12 @@ public:
         return item;
     }
 
+    void insert_(const wxString& name) override
+    {
+        insert(name);
+    }
     // removes item from list
-    void remove(MetadataItem* item)
+    void remove(MetadataItem* item) override
     {
         if (!item)
             return;
@@ -286,6 +306,7 @@ public:
             func(std::static_pointer_cast<MetadataItem>(item));
         }
     }
+
     MetadataItemPtr findByName_(const wxString& name) const override {
         for (const auto& item : itemsM) {
             if (item && item->getName_() == name) {

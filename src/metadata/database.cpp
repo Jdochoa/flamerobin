@@ -48,6 +48,7 @@
 #include "engine/MetadataLoader.h"
 #include "MasterPassword.h"
 
+#include "metadata/MetadataRegistry.h"
 #include "metadata/CharacterSet.h"
 #include "metadata/column.h"
 #include "metadata/database.h"
@@ -336,14 +337,13 @@ void Database::getIdentifiers(std::vector<Identifier>& temp)
     std::transform(m->begin(), m->end(),
         std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
 
-    for (const auto& collection : collectionMetadataM) {
-        collection->forEachItem([&temp](const MetadataItemPtr& item) {
-            if (item) {
-                temp.push_back(item->getName_());
-            }
-            });
-    }
-
+    getMetadataContainer()->forEachItem([&temp](const MetadataItemPtr& item) {
+        if (item) {
+            temp.push_back(item->getName_());
+        }
+        }
+    );
+    
 }
 
 void Database::getDatabaseTriggers(std::vector<Trigger *>& list)
@@ -495,12 +495,7 @@ MetadataItem* Database::findByNameAndType(NodeType nt, const wxString& name)
                 return this;
             else {
                 NodeType type = static_cast<NodeType>(static_cast<int>(nt) + 1);
-                for (const auto& m : collectionMetadataM) {
-                    if (m->getType() == type) {
-                        return m->findByName_(name).get();
-                    }
-                }
-                return 0;
+                return getMetadataContainer()->findByTypeAndName(type, name);
             }
         }
         else
@@ -537,153 +532,12 @@ Relation* Database::getRelationForTrigger(DMLTrigger* trigger)
 void Database::dropObject(MetadataItem* object)
 {
     // find the collection that contains it, and remove it
-    NodeType nt = object->getType();
-    switch (nt)
-    {
-        case ntCharacterSet:
-            getCharacterSets()->remove((CharacterSet*)object);
-            break;
-        case ntCollation:
-            getCollations()->remove((Collation*)object);
-            break;
-        case ntTable:
-            getTables()->remove((Table*)object);
-            break;
-        case ntSysTable:
-            getSysTables()->remove((Table*)object);
-            break;
-        case ntGTT:
-            getGTTables()->remove((Table*)object);
-            break;
-        case ntView:
-            getViews()->remove((View*)object);
-            break;
-        case ntDMLTrigger:
-            getDMLTriggers()->remove((DMLTrigger*)object);
-            break;
-        case ntProcedure:
-            getProcedures()->remove((Procedure*)object);
-            break;
-        case ntFunctionSQL:
-            getFunctionSQLs()->remove((FunctionSQL*)object);
-            break;
-        case ntUDF:
-            getUDFs()->remove((UDF*)object);
-            break;
-        case ntGenerator:
-            getGenerators()->remove((Generator*)object);
-            break;
-        case ntRole:
-            getRoles()->remove((Role*)object);
-            break;
-        case ntSysRole:
-            getSysRoles()->remove((Role*)object);
-            break;
-        case ntDomain:
-            getDomains()->remove((Domain*)object);
-            break;
-        case ntSysDomain:
-            getSysDomains()->remove((Domain*)object);
-            break;
-        case ntException:
-            getExceptions()->remove((Exception*)object);
-            break;
-        case ntPackage:
-            getPackages()->remove((Package*)object);
-            break;
-        case ntSysPackage:
-            getSysPackages()->remove((Package*)object);
-            break;
-        case ntDBTrigger:
-            getDBTriggers()->remove((DBTrigger*)object);
-            break;
-        case ntDDLTrigger:
-            getDDLTriggers()->remove((DDLTrigger*)object);
-            break;
-        case ntIndex:
-            getIndices()->remove((Index*)object);
-            break;
-        case ntUser:
-            getUsers()->remove((Index*)object);
-            break;
-        default:
-            return;
-    };
+    getMetadataContainer()->dropObject(object);
 }
 
 void Database::addObject(NodeType type, const wxString& name)
 {
-    switch (type)
-    {
-        case ntCharacterSet:
-            getCharacterSets()->insert(name);
-            break;
-        case ntCollation:
-            getCollations()->insert(name);
-            break;
-        case ntTable:
-            getTables()->insert(name);
-            break;
-        case ntSysTable:
-            getSysTables()->insert(name);
-            break;
-        case ntGTT:
-            getGTTables()->insert(name);
-            break;
-        case ntView:
-            getViews()->insert(name);
-            break;
-        case ntProcedure:
-            getProcedures()->insert(name);
-            break;
-        case ntDMLTrigger:
-            getDMLTriggers()->insert(name);
-            break;
-        case ntRole:
-            getRoles()->insert(name);
-            break;
-        case ntSysRole:
-            getSysRoles()->insert(name);
-            break;
-        case ntGenerator:
-            getGenerators()->insert(name);
-            break;
-        case ntFunctionSQL:
-            getFunctionSQLs()->insert(name);
-            break;
-        case ntUDF:
-            getUDFs()->insert(name);
-            break;
-        case ntDomain:
-            getDomains()->insert(name);
-            break;
-        case ntSysDomain:
-            getSysDomains()->insert(name);
-            break;
-        case ntException:
-            getExceptions()->insert(name);
-            break;
-        case ntPackage:
-            getPackages()->insert(name);
-            break;
-        case ntSysPackage:
-            getSysPackages()->insert(name);
-            break;
-        case ntDBTrigger:
-            getDBTriggers()->insert(name);
-            break;
-        case ntDDLTrigger:
-            getDDLTriggers()->insert(name);
-            break;
-        case ntIndex:
-            getIndices()->insert(name);
-            break;
-        case ntUser:
-            getUsers()->insert(name);
-            break;
-        default:
-            break;
-    }
+    getMetadataContainer()->addObject(type, name);
 }
 
 //! reads a DDL statement and acts accordingly
@@ -1121,40 +975,7 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
 
 void Database::loadCollections(ProgressIndicator* progressIndicator)
 {
-    // use a small helper to cut down on the repetition...
-    struct ProgressIndicatorHelper
-    {
-    private:
-        ProgressIndicator* progressIndicatorM;
-    public:
-        ProgressIndicatorHelper(ProgressIndicator* progressIndicator)
-            : progressIndicatorM(progressIndicator) {}
-        void init(wxString collectionName, int stepsTotal, int currentStep)
-        {
-            if (progressIndicatorM)
-            {
-                wxString msg(wxString::Format(_("Loading %s..."),
-                    collectionName.c_str()));
-                progressIndicatorM->initProgress(msg, stepsTotal,currentStep, 1);
-            }
-        }
-    };
-
-    const int collectionCount = 24;
-    std::string loadStmt;
-    ProgressIndicatorHelper pih(progressIndicator);
-
-    MetadataLoader* loader = getMetadataLoader();
-    MetadataLoaderTransaction tr(loader);
-    SubjectLocker lock(this);
-    
-    characterSetsM->load(progressIndicator);
-    int i = 1;
-    for (const auto& m : collectionMetadataM) {
-
-        pih.init(m->getTypeName(), collectionCount, i++);
-        m->load(progressIndicator);
-    }
+    getMetadataContainer()->loadCollections(progressIndicator, getDatabase());
 }
 
 void Database::loadDatabaseInfo()
@@ -1240,7 +1061,7 @@ void Database::setDisconnected()
 
     // remove entire DBH beneath
     characterSetsM.reset();
-    collectionMetadataM.clear();
+    //collectionMetadataM.clear();
 
     if (config().get("HideDisconnectedDatabases", false))
         getServer()->notifyObservers();
@@ -1264,7 +1085,7 @@ bool Database::getChildren(std::vector<MetadataItem*>& temp)
     if (!connectedM)
         return false;
 
-    if (collectionMetadataM.empty())
+    if (getMetadataContainer()->empty())
         return false;
 
     getCollections(temp, true);
@@ -1273,97 +1094,102 @@ bool Database::getChildren(std::vector<MetadataItem*>& temp)
 
 DomainsPtr Database::getDomains()
 {
-    return getCollectionPtr<DomainsPtr, Domains>(ntDomains);
+    return getMetadataContainer()->getCollectionPtr<DomainsPtr, Domains>(ntDomains);
 }
 
 SysDomainsPtr Database::getSysDomains()
 {
-    return getCollectionPtr<SysDomainsPtr, SysDomains>(ntSysDomains);
+    return getMetadataContainer()->getCollectionPtr<SysDomainsPtr, SysDomains>(ntSysDomains);
 }
 
 ExceptionsPtr Database::getExceptions()
 {
-    return getCollectionPtr<ExceptionsPtr, Exceptions>(ntExceptions);
+    return getMetadataContainer()->getCollectionPtr<ExceptionsPtr, Exceptions>(ntExceptions);
 }
 
 UDFsPtr Database::getUDFs()
 {
-    return getCollectionPtr<UDFsPtr, UDFs>(ntUDFs);
+    return getMetadataContainer()->getCollectionPtr<UDFsPtr, UDFs>(ntUDFs);
 }
 
 UsersPtr Database::getUsers()
 {
-    return getCollectionPtr<UsersPtr, Users>(ntUsers);
+    return getMetadataContainer()->getCollectionPtr<UsersPtr, Users>(ntUsers);
 }
 
 UsrIndicesPtr Database::getUsrIndices()
 {
-    return getCollectionPtr<UsrIndicesPtr, UsrIndices>(ntUsrIndices);
+    return getMetadataContainer()->getCollectionPtr<UsrIndicesPtr, UsrIndices>(ntUsrIndices);
 }
 
 FunctionSQLsPtr Database::getFunctionSQLs()
 {
-    return getCollectionPtr<FunctionSQLsPtr, FunctionSQLs>(ntFunctionSQLs);
+    return getMetadataContainer()->getCollectionPtr<FunctionSQLsPtr, FunctionSQLs>(ntFunctionSQLs);
 }
 
 GeneratorsPtr Database::getGenerators()
 {
-    return getCollectionPtr<GeneratorsPtr, Generators>(ntGenerators);
+    return getMetadataContainer()->getCollectionPtr<GeneratorsPtr, Generators>(ntGenerators);
 }
 
 IndicesPtr Database::getIndices()
 {
-    return getCollectionPtr<IndicesPtr, Indices>(ntIndices);
+    return getMetadataContainer()->getCollectionPtr<IndicesPtr, Indices>(ntIndices);
 }
 
 PackagesPtr Database::getPackages()
 {
-    return getCollectionPtr<PackagesPtr, Packages>(ntPackages);
+    return getMetadataContainer()->getCollectionPtr<PackagesPtr, Packages>(ntPackages);
 }
 
 SysPackagesPtr Database::getSysPackages()
 {
-    return getCollectionPtr<SysPackagesPtr, SysPackages>(ntSysPackages);
+    return getMetadataContainer()->getCollectionPtr<SysPackagesPtr, SysPackages>(ntSysPackages);
 }
 
 ProceduresPtr Database::getProcedures()
 {
-    return getCollectionPtr<ProceduresPtr, Procedures>(ntProcedures);
+    return getMetadataContainer()->getCollectionPtr<ProceduresPtr, Procedures>(ntProcedures);
 }
 
 RolesPtr Database::getRoles()
 {
-    return getCollectionPtr<RolesPtr, Roles>(ntRoles);
+    return getMetadataContainer()->getCollectionPtr<RolesPtr, Roles>(ntRoles);
 }
 
 SysIndicesPtr Database::getSysIndices()
 {
-    return getCollectionPtr<SysIndicesPtr, SysIndices>(ntSysIndices);
+    return getMetadataContainer()->getCollectionPtr<SysIndicesPtr, SysIndices>(ntSysIndices);
 }
 
 SysRolesPtr Database::getSysRoles()
 {
-    return getCollectionPtr<SysRolesPtr, SysRoles>(ntSysRoles);
+    return getMetadataContainer()->getCollectionPtr<SysRolesPtr, SysRoles>(ntSysRoles);
 }
 
 SysTablesPtr Database::getSysTables()
 {
-    return getCollectionPtr<SysTablesPtr, SysTables>(ntSysTables);
+    return getMetadataContainer()->getCollectionPtr<SysTablesPtr, SysTables>(ntSysTables);
 }
 
 GTTablesPtr Database::getGTTables()
 {
-    return getCollectionPtr<GTTablesPtr, GTTables>(ntGTTs);
+    return getMetadataContainer()->getCollectionPtr<GTTablesPtr, GTTables>(ntGTTs);
 }
 
 TablesPtr Database::getTables()
 {
-    return getCollectionPtr<TablesPtr, Tables>(ntTables);
+    return getMetadataContainer()->getCollectionPtr<TablesPtr, Tables>(ntTables);
 }
 
 DMLTriggersPtr Database::getDMLTriggers()
 {
-    return getCollectionPtr<DMLTriggersPtr, DMLTriggers>(ntDMLTriggers);
+    return getMetadataContainer()->getCollectionPtr<DMLTriggersPtr, DMLTriggers>(ntDMLTriggers);
+}
+
+MetadataContainerPtr Database::getMetadataContainer() const
+{
+    return metadataContainerM;
 }
 
 CharacterSetsPtr Database::getCharacterSets()
@@ -1376,22 +1202,22 @@ CharacterSetsPtr Database::getCharacterSets()
 
 CollationsPtr Database::getCollations()
 {
-    return getCollectionPtr<CollationsPtr, Collations>(ntCollations);
+    return getMetadataContainer()->getCollectionPtr <CollationsPtr, Collations>(ntCollations);
 }
 
 DBTriggersPtr Database::getDBTriggers()
 {
-    return getCollectionPtr<DBTriggersPtr, DBTriggers>(ntDBTriggers);
+    return getMetadataContainer()->getCollectionPtr<DBTriggersPtr, DBTriggers>(ntDBTriggers);
 }
 
 DDLTriggersPtr Database::getDDLTriggers()
 {
-    return getCollectionPtr<DDLTriggersPtr, DDLTriggers>(ntDDLTriggers);
+    return getMetadataContainer()->getCollectionPtr<DDLTriggersPtr, DDLTriggers>(ntDDLTriggers);
 }
 
 ViewsPtr Database::getViews()
 {
-    return getCollectionPtr<ViewsPtr, Views>(ntViews);
+    return getMetadataContainer()->getCollectionPtr<ViewsPtr, Views>(ntViews);
 }
 
 // returns vector of all subitems
@@ -1401,40 +1227,7 @@ void Database::getCollections(std::vector<MetadataItem*>& temp, bool system)
         return;
 
     ensureChildrenLoaded();
-
-    for (const auto& m : collectionMetadataM) {
-        
-        
-        switch (m->getType()) {
-        /*case ntSysCollations:
-            if (system && showSystemCollations())
-                temp.push_back(&(*m));
-            break;*/
-        case ntSysDomains:
-            if (system && showSystemDomains())
-                temp.push_back(&(*m));
-            break;
-        case ntSysIndices:
-            if (system && showSystemIndices() && !showOneNodeIndices())
-                temp.push_back(&(*m));
-            break;
-        case ntSysPackages:
-            if (system && showSystemPackages())
-                temp.push_back(&(*m));
-            break;
-        case ntSysRoles:
-            if (system && showSystemRoles())
-                temp.push_back(&(*m));
-            break;
-        case ntSysTables:
-           if (system && showSystemTables())
-                temp.push_back(&(*m));
-           break;
-           default:
-               temp.push_back(&(*m));
-               break;
-        }
-    }
+    getMetadataContainer()->getCollections(temp, system);
 }
 
 void Database::loadChildren()
@@ -1448,11 +1241,7 @@ void Database::lockChildren()
     if (isConnected())
     {
         characterSetsM->lockSubject();
-
-        for (const auto& m : collectionMetadataM) {
-            m->lockSubject();
-        }
-
+        getMetadataContainer()->lockSubject();
     }
 }
 
@@ -1464,11 +1253,7 @@ void Database::unlockChildren()
     if (isConnected())
     {
         characterSetsM->unlockSubject();
-
-        for (const auto& m : collectionMetadataM) {
-            m->unlockSubject();
-        }
-
+        getMetadataContainer()->unlockSubject();
     }
 }
 
@@ -1831,87 +1616,77 @@ bool Database::showOneNodeIndices()
     return b;
 }
 
-template<class P, class T>
-P Database::getCollectionPtr(NodeType type)
-{
-    for (const auto& m : collectionMetadataM) {
-        if (m->getType() == type) {
-            return std::make_shared<T>(dynamic_cast<T&>(*m));
-        }
-    }
-
-    return nullptr;    
-}
 
 void Database::configureCollections()
 {
+    metadataContainerM = std::make_shared<MetadataContainer>();
     if (getInfo().getODS() < 14) {
-        collectionMetadataM.push_back(std::make_shared<Collations>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Collations>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
-            collectionMetadataM.push_back(std::make_shared<DBTriggers>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<DBTriggers>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-            collectionMetadataM.push_back(std::make_shared<DDLTriggers>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<DDLTriggers>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<Domains>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Domains>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<Exceptions>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Exceptions>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-            collectionMetadataM.push_back(std::make_shared<FunctionSQLs>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<FunctionSQLs>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<Generators>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Generators>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))
-            collectionMetadataM.push_back(std::make_shared<GTTables>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<GTTables>(getDatabase()));
 
         if (showOneNodeIndices() && showSystemIndices())
-            collectionMetadataM.push_back(std::make_shared<Indices>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<Indices>(getDatabase()));
         else
-            collectionMetadataM.push_back(std::make_shared<UsrIndices>(getDatabase()));
+                getMetadataContainer()->addCollection(std::make_shared<UsrIndices>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-            collectionMetadataM.push_back(std::make_shared<Packages>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<Packages>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<Procedures>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Procedures>(getDatabase()));
     }
-    collectionMetadataM.push_back(std::make_shared<Roles>(getDatabase()));
+    getMetadataContainer()->addCollection(std::make_shared<Roles>(getDatabase()));
 
     if (getInfo().getODS() < 14) {
         // Only push back system objects when they should be shown
         if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
             if (showSystemPackages())
-                collectionMetadataM.push_back(std::make_shared<SysPackages>(getDatabase()));
+                getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
         }
         if (showSystemDomains())
-            collectionMetadataM.push_back(std::make_shared<SysDomains>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
 
         if (showSystemIndices() && !showOneNodeIndices())
-            collectionMetadataM.push_back(std::make_shared<SysIndices>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
 
         if (showSystemRoles())
-            collectionMetadataM.push_back(std::make_shared<SysRoles>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<SysRoles>(getDatabase()));
 
         if (showSystemTables())
-            collectionMetadataM.push_back(std::make_shared<SysTables>(getDatabase()));
+            getMetadataContainer()->addCollection(std::make_shared<SysTables>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<Tables>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Tables>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<DMLTriggers>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<DMLTriggers>(getDatabase()));
 
-        collectionMetadataM.push_back(std::make_shared<UDFs>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<UDFs>(getDatabase()));
     }
     if (getInfo().getODSVersionIsHigherOrEqualTo(12.0))
-        collectionMetadataM.push_back(std::make_shared<Users12_0>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Users12_0>(getDatabase()));
     else
-        collectionMetadataM.push_back(std::make_shared<Users11_0>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Users11_0>(getDatabase()));
 
     if (getInfo().getODS() < 14) {
-        collectionMetadataM.push_back(std::make_shared<Views>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Views>(getDatabase()));
     }
     if (getInfo().getODSVersionIsHigherOrEqualTo(14.0))
-        collectionMetadataM.push_back(std::make_shared<Schemas>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<Schemas>(getDatabase()));
 }
 
 wxString mapConnectionCharsetToSystemCharset(const wxString& connectionCharset)
