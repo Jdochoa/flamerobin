@@ -106,6 +106,8 @@ public:
     virtual bool isSystem() const;
     void load(ProgressIndicator* progressIndicator);
     virtual const wxString getTypeName() const;
+    wxString getConfigShowValue() override { return "ShowSystemTables"; }
+
 };
 
 class Tables: public MetadataCollection<Table>
