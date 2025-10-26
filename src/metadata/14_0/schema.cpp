@@ -69,6 +69,7 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
     ensurePropertiesLoaded();
     if (isSystem() )
     {
+        getMetadataContainer()->addCollection(std::make_shared<SysCharacterSets>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
@@ -77,7 +78,7 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
     }
     else
     {
-        //getSetOfCollections()->addCollection(std::make_shared<Charset>());
+        getMetadataContainer()->addCollection(std::make_shared<CharacterSets>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<Collations14>(this));
         getMetadataContainer()->addCollection(std::make_shared<Domains>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<Exceptions>(getDatabase()));

@@ -79,6 +79,7 @@ public:
     virtual void visitServer(Server& server);
     virtual void visitSysIndices(SysIndices& indices);
     virtual void visitUsrIndices(UsrIndices& indices);
+    virtual void visitSysCharacterSets(SysCharacterSets& charactersets);
     virtual void visitSysDomains(SysDomains& domains);
     virtual void visitSysPackages(SysPackages& packages);
     virtual void visitSysRoles(SysRoles& sysRoles);

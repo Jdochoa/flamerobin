@@ -333,10 +333,6 @@ void Database::getIdentifiers(std::vector<Identifier>& temp)
 {
     checkConnected(_("getIdentifiers"));
  
-    CharacterSetsPtr m = getCharacterSets();
-    std::transform(m->begin(), m->end(),
-        std::back_inserter(temp), std::mem_fn(&MetadataItem::getIdentifier));
-    
     getMetadataContainer()->getIdentifiers(temp);   
 }
 
@@ -359,7 +355,7 @@ CharacterSetPtr Database::getCharsetById(int id)
     // if it contains both charset and collation as 2 bytes
     id %= 256;
  
-    return  getCharacterSets()->findByMetadataId(id);
+    return  getSysCharacterSets()->findByMetadataId(id);
 }
 
 wxArrayString Database::getCharacterSet()
@@ -367,7 +363,7 @@ wxArrayString Database::getCharacterSet()
     wxArrayString temp;
     //std::vector<CharacterSet*> list;
 
-    getCharacterSets()->forEachItem([&temp](const MetadataItemPtr& item) {
+    getSysCharacterSets()->forEachItem([&temp](const MetadataItemPtr& item) {
         if (item)
             temp.push_back(item->getName_());
         }
@@ -379,7 +375,7 @@ wxArrayString Database::getCharacterSet()
 //! returns all collations for a given charset
 wxArrayString Database::getCollations(const wxString& charset)
 {
-    CharacterSetPtr  characterSet = getCharacterSets()->findByName(charset);
+    CharacterSetPtr  characterSet = getSysCharacterSets()->findByName(charset);
     if (!characterSet)
         return wxArrayString();
     characterSet->ensureChildrenLoaded();
@@ -395,7 +391,7 @@ DomainPtr Database::getDomain(const wxString& name)
 bool Database::isDefaultCollation(const wxString& charset,
     const wxString& collate)
 {
-    CharacterSetPtr  characterSet =  getCharacterSets()->findByName(charset);
+    CharacterSetPtr  characterSet =  getSysCharacterSets()->findByName(charset);
     if (!characterSet)
         return false;
 
@@ -886,8 +882,6 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
             DatabasePtr me(shared_from_this());
             unsigned lockCount = getLockCount();
 
-            characterSetsM.reset(new CharacterSets(me));
-            initializeLockCount(characterSetsM, lockCount);
             configureCollections();
 
             // first start a transaction for metadata loading, then lock the
@@ -1029,7 +1023,6 @@ void Database::setDisconnected()
     resetPendingLoadData();
 
     // remove entire DBH beneath
-    characterSetsM.reset();
     //collectionMetadataM.clear();
 
     if (config().get("HideDisconnectedDatabases", false))
@@ -1163,10 +1156,12 @@ MetadataContainerPtr Database::getMetadataContainer() const
 
 CharacterSetsPtr Database::getCharacterSets()
 {
-    wxASSERT(characterSetsM);
-    characterSetsM->ensureChildrenLoaded();
-    return characterSetsM;
-    //return getCollectionPtr<CharacterSetsPtr, CharacterSets>(ntCharacterSets);
+    return getMetadataContainer()->getCollectionPtr<CharacterSetsPtr, CharacterSets>(ntCharacterSets);
+}
+
+SysCharacterSetsPtr Database::getSysCharacterSets()
+{
+    return getMetadataContainer()->getCollectionPtr<SysCharacterSetsPtr, SysCharacterSets>(ntSysCharacterSets);
 }
 
 CollationsPtr Database::getCollations()
@@ -1209,7 +1204,6 @@ void Database::lockChildren()
 {
     if (isConnected())
     {
-        characterSetsM->lockSubject();
         getMetadataContainer()->lockSubject();
     }
 }
@@ -1221,7 +1215,6 @@ void Database::unlockChildren()
     // every added domain will cause all collection observers to update
     if (isConnected())
     {
-        characterSetsM->unlockSubject();
         getMetadataContainer()->unlockSubject();
     }
 }
@@ -1502,17 +1495,6 @@ void Database::loadInfo()
     notifyObservers();
 }
 
-bool Database::showSystemCharacterSet()
-{
-    const wxString SHOW_SYSCHARACTERSET = "ShowSystemCharacterSet";
-
-    bool b;
-    if (!DatabaseConfig(this, config()).getValue(SHOW_SYSCHARACTERSET, b))
-        b = config().get(SHOW_SYSCHARACTERSET, true);
-    
-    return b;
-}
-
 
 bool Database::showOneNodeIndices()
 {
@@ -1530,6 +1512,9 @@ void Database::configureCollections()
 {
     metadataContainerM = std::make_shared<MetadataContainer>();
     if (getInfo().getODS() < 14) {
+        getMetadataContainer()->addCollection(std::make_shared<SysCharacterSets>(getDatabase()));
+        getMetadataContainer()->addCollection(std::make_shared<CharacterSets>(getDatabase()));
+
         getMetadataContainer()->addCollection(std::make_shared<Collations>(getDatabase()));
 
         if (getInfo().getODSVersionIsHigherOrEqualTo(11.1))

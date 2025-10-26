@@ -273,14 +273,21 @@ void CharacterSets::acceptVisitor(MetadataItemVisitor* visitor)
 void CharacterSets::load(ProgressIndicator* progressIndicator)
 {
  
-    
+    std::string stmt("select rdb$character_set_name, "
+        "RDB$CHARACTER_SET_ID , "
+        "RDB$BYTES_PER_CHARACTER, "
+        "RDB$DEFAULT_COLLATE_NAME "
+        "from rdb$character_sets "
+        "where rdb$System_Flag != 1 "
+        " order by rdb$character_set_name "
+    );
+
     DatabasePtr db = getDatabase();
     MetadataLoader* loader = db->getMetadataLoader();
     MetadataLoaderTransaction tr(loader);
     wxMBConv* converter = db->getCharsetConverter();
 
-    IBPP::Statement& st1 = loader->getStatement(
-        CharacterSet::getLoadStatement(true));
+    IBPP::Statement& st1 = loader->getStatement(stmt);
 
     CollectionType characters;
     st1->Execute();
@@ -321,6 +328,85 @@ void CharacterSets::load(ProgressIndicator* progressIndicator)
 }
 
 const wxString CharacterSets::getTypeName() const
+{
+    return  "CHARACTERSET_COLLECTION";
+}
+
+
+void SysCharacterSets::loadChildren()
+{
+    load(0);
+}
+
+SysCharacterSets::SysCharacterSets(DatabasePtr database)
+    : MetadataCollection<CharacterSet>(ntSysCharacterSets, database, _("SysCharacterSets"))
+
+{
+}
+
+void SysCharacterSets::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    visitor->visitSysCharacterSets(*this);
+}
+
+void SysCharacterSets::load(ProgressIndicator* progressIndicator)
+{
+
+    std::string stmt("select rdb$character_set_name, "
+        "RDB$CHARACTER_SET_ID , "
+        "RDB$BYTES_PER_CHARACTER, "
+        "RDB$DEFAULT_COLLATE_NAME "
+        "from rdb$character_sets "
+        "where rdb$System_Flag = 1 "
+        " order by rdb$character_set_name "
+    );
+
+    DatabasePtr db = getDatabase();
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(stmt);
+
+    CollectionType characters;
+    st1->Execute();
+    checkProgressIndicatorCanceled(progressIndicator);
+    while (st1->Fetch())
+    {
+        if (!st1->IsNull(1))
+        {
+            std::string s;
+            st1->Get(1, s);
+            wxString name(std2wxIdentifier(s, converter));
+
+            CharacterSetPtr character = findByName(name);
+            if (!character)
+            {
+                character.reset(new CharacterSet(db, name));
+                initializeLockCount(character, getLockCount());
+            }
+            characters.push_back(character);
+            character->loadProperties(st1, converter);
+        }
+        checkProgressIndicatorCanceled(progressIndicator);
+    }
+
+    setItems(characters);
+
+
+    /*
+    DatabasePtr db = getDatabase();
+    wxString stmt("select rdb$character_set_name, "
+        "RDB$CHARACTER_SET_ID , "
+        "c.RDB$BYTES_PER_CHARACTER, "
+        "c.RDB$DEFAULT_COLLATE_NAME "
+        "from rdb$character_sets "
+        " order by rdb$character_set_name "
+    );
+    setItems(db->loadIdentifiers(stmt, progressIndicator));*/
+}
+
+const wxString SysCharacterSets::getTypeName() const
 {
     return  "CHARACTERSET_COLLECTION";
 }

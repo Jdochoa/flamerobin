@@ -52,66 +52,65 @@ void MetadataContainer::addCollection(const std::shared_ptr<MetadataCollectionBa
 
 void MetadataContainer::getCollections(std::vector<MetadataItem*>& temp, bool system)
 {
-    for (const auto& col : collectionsM) {
-        if (col){
-            if (/*system && */col->showCollection())
-                temp.push_back(&(*col));
+    forEachCollection([&temp](const MetadataCollectionBasePtr& col) {
+        if (/*system && */col->showCollection())
+            temp.push_back(&(*col));
+
         }
-    }
+    );
 }
+
 MetadataItemPtr MetadataContainer::findByName(const wxString& name) const 
 {
-    for (const auto& col : collectionsM) {
-        if (col) {
-            return col->findByName_(name);
+    forEachCollection([&name](const MetadataCollectionBasePtr& col) {
+        return col->findByName_(name);
         }
-    }
+    );
+
     return nullptr;
 }
 
 MetadataItemPtr MetadataContainer::findByTypeAndName(NodeType nt, const wxString& name) 
 {
-    for (const auto& col : collectionsM) {
-        if (col->getType() == nt) {
+    forEachCollection([&nt, &name](const MetadataCollectionBasePtr& col) {
+        if (col->getType() == nt)
             return col->findByName_(name);
+
         }
-    }
+    );
     return nullptr;
 }
 
 MetadataItemPtr MetadataContainer::findByTypeAndId(NodeType nt, int id)
 {
-    for (const auto& col : collectionsM) {
-        if (col->getType() == nt) {
+    forEachCollection([&nt, &id](const MetadataCollectionBasePtr& col) {
+        if (col->getType() == nt)
             return col->findByMetadataId_(id);
+
         }
-    }
+    );
     return nullptr;
 }
 
 std::vector<wxString> MetadataContainer::getAllNames() const 
 {
     std::vector<wxString> list;
-    for (const auto& col : collectionsM) {
+    forEachCollection([&list](const MetadataCollectionBasePtr& col) {
         col->forEachItem([&list](const MetadataItemPtr& item) {
-            if (item)
-                list.push_back(item->getName_());
+            list.push_back(item->getName_());
             }
         );
-    }
+        }
+    );
     return list;
 }
 
 void MetadataContainer::getIdentifiers(std::vector<Identifier>& temp)
 {
     forEachCollection([&temp](const MetadataCollectionBasePtr& item) {
-        if (item) {
-            item->forEachItem([&temp](const MetadataItemPtr& item) {
-                if (item) {
-                    temp.push_back(item->getIdentifier());
-                }
-                });
-        }
+        item->forEachItem([&temp](const MetadataItemPtr& item) {
+            temp.push_back(item->getIdentifier());
+            });
         }
     );
 }
@@ -135,13 +134,11 @@ RelationPtr MetadataContainer::findRelation(const Identifier& name)
         t = getCollectionPtr<GTTablesPtr, GTTables>(ntGTTs)->findByName(s);
         if (t)
             return std::static_pointer_cast<Relation>(t);
-        else
-        {
+        else {
             ViewPtr v = getCollectionPtr<ViewsPtr, Views>(ntViews)->findByName(s);
             if (v)
                 return std::static_pointer_cast<Relation>(v);
-            else
-            {
+            else {
                 t = getCollectionPtr<SysTablesPtr, SysTables>(ntSysTables)->findByName(s);
                 if (t)
                     return std::static_pointer_cast<Relation>(t);
@@ -189,16 +186,19 @@ size_t MetadataContainer::capacity() const
     return collectionsM.capacity();
 }
 
-void MetadataContainer::lockSubject() {
-    for (const auto& col : collectionsM) {
+void MetadataContainer::lockSubject() 
+{
+    forEachCollection([](const MetadataCollectionBasePtr& col) {
         col->lockSubject();
-    }
+        }
+    );
 }
 
 void MetadataContainer::unlockSubject() {
-    for (const auto& col : collectionsM) {
+    forEachCollection([](const MetadataCollectionBasePtr& col) {
         col->unlockSubject();
-    }
+        }
+    );
 }
 
 void MetadataContainer::forEachCollection(
@@ -221,10 +221,8 @@ void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)
         }
         void init(wxString collectionName, int stepsTotal, int currentStep)
         {
-            if (progressIndicatorM)
-            {
-                wxString msg(wxString::Format(_("Loading %s..."),
-                    collectionName.c_str()));
+            if (progressIndicatorM) {
+                wxString msg(wxString::Format(_("Loading %s..."), collectionName.c_str()));
                 progressIndicatorM->initProgress(msg, stepsTotal, currentStep, 1);
             }
         }
@@ -243,9 +241,7 @@ void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)
             if (col->getType() == ntSchemas) {
                 col->ensureChildrenLoaded();
                 col->forEachItem([&pi](const MetadataItemPtr& item) {
-                    if (item) {
                         dynamic_cast<Schema*>(item.get())->loadCollections(pi);
-                    }
                     }
                 );
             }
@@ -260,22 +256,18 @@ void MetadataContainer::dropObject(MetadataItem* object)
 {
     NodeType type = object->getType();
     type = static_cast<NodeType>(static_cast<int>(type) + 1);
-    for (auto col : collectionsM) {
-        if (col) {
-            if (col->getType() == type) {
+    forEachCollection([&object, &type](const MetadataCollectionBasePtr& col) {
+            if (col->getType() == type) 
                 col->remove(object);
-            }
         }
-    }
+    );
 }
 void MetadataContainer::addObject(NodeType type, const wxString& name)
 {
     type = static_cast<NodeType>(static_cast<int>(type) + 1);
-    for (auto col : collectionsM) {
-        if (col) {
-            if (col->getType() == type) {
-                col->insert_(name);
-            }
+    forEachCollection([&name, &type](const MetadataCollectionBasePtr& col) {
+        if (col->getType() == type) 
+            col->insert_(name);
         }
-    }
+    );
 }

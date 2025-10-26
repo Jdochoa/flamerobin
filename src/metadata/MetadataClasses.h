@@ -33,6 +33,9 @@ typedef std::shared_ptr<CharacterSet> CharacterSetPtr;
 typedef std::vector<CharacterSetPtr> CharacterSetPtrs;
 class CharacterSets;
 typedef std::shared_ptr<CharacterSets> CharacterSetsPtr;
+class SysCharacterSets;
+typedef std::shared_ptr<SysCharacterSets> SysCharacterSetsPtr;
+
 
 // ToDo: Inplementation pending
 class Collation;

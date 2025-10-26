@@ -242,6 +242,11 @@ void MetadataItemVisitor::visitUsrIndices(UsrIndices&)
 	defaultAction();
 }
 
+void MetadataItemVisitor::visitSysCharacterSets(SysCharacterSets& charactersets)
+{
+    defaultAction();
+}
+
 void MetadataItemVisitor::visitSysDomains(SysDomains&)
 {
     defaultAction();

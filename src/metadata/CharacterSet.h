@@ -32,6 +32,7 @@
 #include "metadata/privilege.h"
 
 class CharacterSets;
+class SysCharacterSets;
 
 class CharacterSet: public MetadataItem
 {
@@ -41,6 +42,7 @@ private:
     CollationPtrs collationsM;
 
     friend class CharacterSets;
+    friend class SysCharacterSets;
 protected:
 
     CollationPtr findCollation(const wxString& name) const;
@@ -86,9 +88,24 @@ public:
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
-    virtual const wxString getTypeName() const;
+    virtual  const wxString getTypeName() const;
 
 
 };
+
+class SysCharacterSets : public MetadataCollection<CharacterSet>
+{
+protected:
+    virtual void loadChildren();
+public:
+    SysCharacterSets(DatabasePtr database);
+
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+    void load(ProgressIndicator* progressIndicator);
+    virtual const wxString getTypeName() const;
+    wxString getConfigShowValue() override { return "ShowSystemCharacterSet"; }
+
+};
+
 
 #endif // FR_CHARACTERSET_H

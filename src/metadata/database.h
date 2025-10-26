@@ -189,8 +189,6 @@ private:
 
     DatabaseInfo databaseInfoM;
 
-    CharacterSetsPtr characterSetsM;
-
     MetadataContainerPtr metadataContainerM;
 
     // copy constructor implementation removed since it's no longer needed
@@ -211,7 +209,6 @@ private:
 
     mutable unsigned idM;
 
-    bool showSystemCharacterSet();
     bool showOneNodeIndices();
 
     void configureCollections();
@@ -232,6 +229,7 @@ public:
 
     MetadataContainerPtr getMetadataContainer() const;
     CharacterSetsPtr getCharacterSets();
+    SysCharacterSetsPtr getSysCharacterSets();
     CollationsPtr getCollations();
     DBTriggersPtr getDBTriggers();
     DDLTriggersPtr getDDLTriggers();

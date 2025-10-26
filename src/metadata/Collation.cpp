@@ -207,13 +207,11 @@ wxString Collation::getSource()
 wxString Collation::getAlterSql()
 {
     return getDropSqlStatement() + "\n\n "
-
         "CREATE COLLATION " + getSchemaName_() + getName_() + "\n" + getSource() + ";\n";
 }
 
 void SysCollations::loadChildren()
 {
-
     load(0);
 }
 
@@ -296,6 +294,16 @@ void Collations14::load(ProgressIndicator* progressIndicator)
         "   and RDB$SCHEMA_NAME = '" + wx2std(getParent()->getName_(), db->getCharsetConverter()) + "' "
         " Order By RDB$COLLATION_NAME ");
     setItems(db->loadIdentifiers(stmt, progressIndicator));
+}
+
+wxString Collations14::getSchemaName_() const
+{
+    return getParent()->getName_() << ".";
+}
+
+wxString Collations14::getQuotedSchemaName() const
+{
+    return getParent()->getQuotedName() << ".";
 }
 
 Collation14::Collation14(MetadataItem* parent, const wxString& name, int id)
