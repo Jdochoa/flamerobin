@@ -126,6 +126,8 @@ public:
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
+    wxString getSchemaName_() const override;
+    wxString getQuotedSchemaName() const override;
 };
 
 #endif // FR_COLLATION_H

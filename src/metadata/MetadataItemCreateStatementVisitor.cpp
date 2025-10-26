@@ -34,6 +34,8 @@
 #include "metadata/MetadataItemCreateStatementVisitor.h"
 #include "sql/StatementBuilder.h"
 
+#include "metadata/Collation.h"
+
 /*static*/
 wxString MetadataItemCreateStatementVisitor::getCreateDomainStatement()
 {
@@ -234,9 +236,9 @@ wxString MetadataItemCreateStatementVisitor::getCreateCharacterSetStatement()
     return "";
 }
 
-wxString MetadataItemCreateStatementVisitor::getCreateCollationStatment()
+wxString MetadataItemCreateStatementVisitor::getCreateCollationStatment(wxString schemaName)
 {
-    return "CREATE COLLATION collname \n"
+    return "CREATE COLLATION " + schemaName + "collname \n"
         "FOR charset \n"
         "[FROM {basecoll | EXTERNAL('extname')}] \n"
         "[NO PAD | PAD SPACE] \n"
@@ -392,9 +394,9 @@ void MetadataItemCreateStatementVisitor::visitCharacterSets(CharacterSets& /*cha
     statementM = getCreateCharacterSetStatement();
 }
 
-void MetadataItemCreateStatementVisitor::visitCollations(Collations& /*collations*/)
+void MetadataItemCreateStatementVisitor::visitCollations(Collations& collations)
 {
-    statementM = getCreateCollationStatment();
+    statementM = getCreateCollationStatment(collations.getSchemaName_());
 
 }
 

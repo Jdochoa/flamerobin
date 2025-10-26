@@ -55,7 +55,6 @@ void MetadataContainer::getCollections(std::vector<MetadataItem*>& temp, bool sy
     forEachCollection([&temp](const MetadataCollectionBasePtr& col) {
         if (/*system && */col->showCollection())
             temp.push_back(&(*col));
-
         }
     );
 }
@@ -75,7 +74,6 @@ MetadataItemPtr MetadataContainer::findByTypeAndName(NodeType nt, const wxString
     forEachCollection([&nt, &name](const MetadataCollectionBasePtr& col) {
         if (col->getType() == nt)
             return col->findByName_(name);
-
         }
     );
     return nullptr;
@@ -86,7 +84,6 @@ MetadataItemPtr MetadataContainer::findByTypeAndId(NodeType nt, int id)
     forEachCollection([&nt, &id](const MetadataCollectionBasePtr& col) {
         if (col->getType() == nt)
             return col->findByMetadataId_(id);
-
         }
     );
     return nullptr;
@@ -110,7 +107,8 @@ void MetadataContainer::getIdentifiers(std::vector<Identifier>& temp)
     forEachCollection([&temp](const MetadataCollectionBasePtr& item) {
         item->forEachItem([&temp](const MetadataItemPtr& item) {
             temp.push_back(item->getIdentifier());
-            });
+            }
+        );
         }
     );
 }
@@ -146,7 +144,6 @@ RelationPtr MetadataContainer::findRelation(const Identifier& name)
                     return nullptr;
             }
         }
-
     }
     return nullptr;
 }
@@ -207,6 +204,15 @@ void MetadataContainer::forEachCollection(
     for (const auto& col : collectionsM) {
         func(std::static_pointer_cast<MetadataCollectionBase>(col));
     }
+}
+
+void MetadataContainer::sortCollections()
+{
+    std::sort(collectionsM.begin(), collectionsM.end(),
+        [](const MetadataCollectionBasePtr& a, const MetadataCollectionBasePtr& b) {
+            return a->getName_() < b->getName_();
+        }
+    );
 }
 
 void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)

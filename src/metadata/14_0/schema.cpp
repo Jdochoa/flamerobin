@@ -95,6 +95,7 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
         getMetadataContainer()->addCollection(std::make_shared<DMLTriggers>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<Views>(getDatabase()));
     }
+    getMetadataContainer()->sortCollections();
 }
 
 Schema::Schema(DatabasePtr database, const wxString& name)

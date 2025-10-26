@@ -115,8 +115,6 @@ public:
 
         return b;
     }
-    ;
-
 };
 
 template <class T>
@@ -326,6 +324,11 @@ public:
             }
         }
         return nullptr;
+    }
+
+    bool operator < (const MetadataCollection<T>& other) const
+    {
+        return this->getName_() < other.getName_();
     }
 
 protected:

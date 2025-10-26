@@ -30,9 +30,11 @@ class MetadataItemCreateStatementVisitor : public MetadataItemVisitor
 {
 private:
     wxString statementM;
+protected:
+
 public:
     static wxString getCreateCharacterSetStatement();
-    static wxString getCreateCollationStatment();
+    static wxString getCreateCollationStatment(wxString schemaName);
     static wxString getCreateDBTriggerStatement();
     static wxString getCreateDDLTriggerStatement();
     static wxString getCreateDMLTriggerStatement();

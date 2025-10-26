@@ -204,6 +204,7 @@ public:
     static bool hasSystemPrefix(const wxString& name);
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
+
 };
 
 class DependencyField : public MetadataItem

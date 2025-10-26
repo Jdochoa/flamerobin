@@ -339,7 +339,7 @@ void SysCharacterSets::loadChildren()
 }
 
 SysCharacterSets::SysCharacterSets(DatabasePtr database)
-    : MetadataCollection<CharacterSet>(ntSysCharacterSets, database, _("SysCharacterSets"))
+    : MetadataCollection<CharacterSet>(ntSysCharacterSets, database, _("System CharacterSets"))
 
 {
 }

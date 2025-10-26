@@ -1512,7 +1512,6 @@ void Database::configureCollections()
 {
     metadataContainerM = std::make_shared<MetadataContainer>();
     if (getInfo().getODS() < 14) {
-        getMetadataContainer()->addCollection(std::make_shared<SysCharacterSets>(getDatabase()));
         getMetadataContainer()->addCollection(std::make_shared<CharacterSets>(getDatabase()));
 
         getMetadataContainer()->addCollection(std::make_shared<Collations>(getDatabase()));
@@ -1549,12 +1548,15 @@ void Database::configureCollections()
 
     if (getInfo().getODS() < 14) {
         // Only push back system objects when they should be shown
-        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
-                getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
-        }
+        getMetadataContainer()->addCollection(std::make_shared<SysCharacterSets>(getDatabase()));
+
         getMetadataContainer()->addCollection(std::make_shared<SysDomains>(getDatabase()));
 
         getMetadataContainer()->addCollection(std::make_shared<SysIndices>(getDatabase()));
+
+        if (getInfo().getODSVersionIsHigherOrEqualTo(12.0)) {
+            getMetadataContainer()->addCollection(std::make_shared<SysPackages>(getDatabase()));
+        }
 
         getMetadataContainer()->addCollection(std::make_shared<SysRoles>(getDatabase()));
 
@@ -1576,6 +1578,8 @@ void Database::configureCollections()
     }
     if (getInfo().getODSVersionIsHigherOrEqualTo(14.0))
         getMetadataContainer()->addCollection(std::make_shared<Schemas>(getDatabase()));
+
+    getMetadataContainer()->sortCollections();
 }
 
 wxString mapConnectionCharsetToSystemCharset(const wxString& connectionCharset)

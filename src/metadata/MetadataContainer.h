@@ -69,8 +69,6 @@ public:
     DomainPtr getDomain(const wxString& name);
     RelationPtr findRelation(const Identifier& name);
 
-
-
     MetadataCollectionBasePtrs::iterator begin();
     MetadataCollectionBasePtrs::iterator end();
     MetadataCollectionBasePtrs::const_iterator begin() const;
@@ -79,22 +77,26 @@ public:
     bool empty() const;
     size_t size() const;
 
+
     void lockSubject();
     void unlockSubject();
     void forEachCollection(const std::function<void(const MetadataCollectionBasePtr&)>& func) const;
+    void sortCollections();
 
     template <class P, class T>
     P getCollectionPtr(NodeType type) {
+        P coll = NULL;
+
         for (const auto& m : collectionsM) {
             if (m->getType() == type) {
-                return std::make_shared<T>(dynamic_cast<T&>(*m));
+                coll= std::make_shared<T>(dynamic_cast<T&>(*m));
             }
         }
-        return nullptr;
+        if (!coll)
+            throw std::runtime_error("Error: collection is not available.");
+        
+        return coll;
     }
-
-
-
 };
 
 #endif // FR_METADATACONTAINER_H
