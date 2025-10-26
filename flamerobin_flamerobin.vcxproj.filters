@@ -465,6 +465,9 @@
     <ClCompile Include="src\metadata\14_0\schema.cpp">
       <Filter>Source Files\metadata\14_0</Filter>
     </ClCompile>
+    <ClCompile Include="src\metadata\MetadataContainer.cpp">
+      <Filter>Source Files\metadata</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gui\AboutBox.h">
@@ -844,6 +847,9 @@
     </ClInclude>
     <ClInclude Include="src\metadata\14_0\schema.h">
       <Filter>Header Files\metadata\14_0</Filter>
+    </ClInclude>
+    <ClInclude Include="src\metadata\MetadataContainer.h">
+      <Filter>Header Files\metadata</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

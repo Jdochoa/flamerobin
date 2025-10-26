@@ -153,6 +153,7 @@ list(APPEND SOURCE_LIST
         ${SOURCEDIR}/metadata/function.cpp
         ${SOURCEDIR}/metadata/generator.cpp
         ${SOURCEDIR}/metadata/Index.cpp
+        ${SOURCEDIR}/metadata/MetadataContainer.cpp
         ${SOURCEDIR}/metadata/metadataitem.cpp
         ${SOURCEDIR}/metadata/MetadataItemCreateStatementVisitor.cpp
         ${SOURCEDIR}/metadata/MetadataItemDescriptionVisitor.cpp
@@ -280,6 +281,7 @@ list(APPEND HEADER_LIST
         ${SOURCEDIR}/metadata/generator.h
         ${SOURCEDIR}/metadata/Index.h
         ${SOURCEDIR}/metadata/MetadataClasses.h
+        ${SOURCEDIR}/metadata/MetadataContainer.h
         ${SOURCEDIR}/metadata/metadataitem.h
         ${SOURCEDIR}/metadata/MetadataItemCreateStatementVisitor.h
         ${SOURCEDIR}/metadata/MetadataItemDescriptionVisitor.h

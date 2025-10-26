@@ -1098,6 +1098,7 @@
     <ClCompile Include="src\metadata\MetadataItemDescriptionVisitor.cpp" />
     <ClCompile Include="src\metadata\MetadataItemURIHandlerHelper.cpp" />
     <ClCompile Include="src\metadata\MetadataItemVisitor.cpp" />
+    <ClCompile Include="src\metadata\MetadataContainer.cpp" />
     <ClCompile Include="src\metadata\MetadataTemplateCmdHandler.cpp" />
     <ClCompile Include="src\metadata\MetadataTemplateManager.cpp" />
     <ClCompile Include="src\metadata\package.cpp" />
@@ -1227,6 +1228,7 @@
     <ClInclude Include="src\metadata\MetadataItemDescriptionVisitor.h" />
     <ClInclude Include="src\metadata\MetadataItemURIHandlerHelper.h" />
     <ClInclude Include="src\metadata\MetadataItemVisitor.h" />
+    <ClInclude Include="src\metadata\MetadataContainer.h" />
     <ClInclude Include="src\metadata\MetadataTemplateManager.h" />
     <ClInclude Include="src\metadata\package.h" />
     <ClInclude Include="src\metadata\parameter.h" />
