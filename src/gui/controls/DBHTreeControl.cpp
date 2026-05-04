@@ -65,8 +65,7 @@
 #include "metadata/trigger.h"
 #include "metadata/view.h"
 #include "sql/SqlTokenizer.h"
-#include "metadata/12_0/User12_0.h"
-#include "metadata/14_0/schema.h"
+#include "metadata/schema.h"
 
 // DBHTreeConfigCache: class to cache config data for tree control behaviour
 class DBHTreeConfigCache: public ConfigCache, public Subject

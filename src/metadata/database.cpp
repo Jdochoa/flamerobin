@@ -68,9 +68,7 @@
 #include "metadata/trigger.h"
 #include "metadata/view.h"
 #include "metadata/User.h"
-#include "metadata/11_0/User11_0.h"
-#include "metadata/12_0/User12_0.h"
-#include "metadata/14_0/schema.h"
+#include "metadata/schema.h"
 
 #include "sql/SqlStatement.h"
 #include "sql/SqlTokenizer.h"
@@ -354,8 +352,9 @@ CharacterSetPtr Database::getCharsetById(int id)
 {
     // if it contains both charset and collation as 2 bytes
     id %= 256;
- 
-    return  getSysCharacterSets()->findByMetadataId(id);
+    return getMetadataContainer()->getCharactersetById(id);
+
+    //return  getSysCharacterSets()->findByMetadataId(id);
 }
 
 wxArrayString Database::getCharacterSet()
@@ -938,7 +937,8 @@ void Database::connect(const wxString& password, ProgressIndicator* indicator)
 
 void Database::loadCollections(ProgressIndicator* progressIndicator)
 {
-    getMetadataContainer()->loadCollections(progressIndicator, getDatabase());
+    getMetadataContainer()->loadCollections(progressIndicator, getDatabase(), databaseCharsetM);
+
 }
 
 void Database::loadDatabaseInfo()
@@ -1510,7 +1510,11 @@ bool Database::showOneNodeIndices()
 
 void Database::configureCollections()
 {
-    metadataContainerM = std::make_shared<MetadataContainer>();
+    if (getInfo().getODS() < 14)
+        metadataContainerM = std::make_shared<MetadataContainer>();
+    else
+        metadataContainerM = std::make_shared<MetadataContainer_14_0>();
+
     if (getInfo().getODS() < 14) {
         getMetadataContainer()->addCollection(std::make_shared<CharacterSets>(getDatabase()));
 

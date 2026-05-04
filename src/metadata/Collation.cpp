@@ -40,6 +40,62 @@
 #include "metadata/metadataitem.h"
 
 
+std::string Collation::getColumnsLoadStmt()
+{
+    return std::string("select 	"
+        "c.RDB$COLLATION_NAME, "       //1
+        "c.RDB$COLLATION_ID, "         //2
+        "c.RDB$COLLATION_ATTRIBUTES, " //3
+        "c.RDB$BASE_COLLATION_NAME, "  //4
+        "c.RDB$SPECIFIC_ATTRIBUTES,  " //5
+        "c.RDB$CHARACTER_SET_ID "      //6
+        );
+}
+
+std::string Collation::getFromLoadStmt()
+{
+    return std::string("from RDB$COLLATIONS c ");
+}
+
+std::string Collation::getWhereLoadStmt()
+{
+    return std::string(" where c.RDB$COLLATION_NAME = ? ");
+}
+
+void Collation::setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter)
+{
+    statement->Set(1, wx2std(getName_(), converter));
+}
+
+void Collation::setProperties(IBPP::Statement& statement, wxMBConv* converter)
+{
+    setPropertiesLoaded(false);
+
+    int Lid;
+    std::string Lstr;
+
+    //statement->Get(1, Lstr);
+    //setName(std2wxIdentifier(Lstr, converter));
+
+    statement->Get(2, Lid);
+    setMetadataId(Lid);
+
+    statement->Get(3, Lid);
+    setAttributes(Lid);
+
+    statement->Get(4, Lstr);
+    setBaseCollectionName(std2wxIdentifier(Lstr, converter));
+
+    statement->Get(5, Lstr);
+    setSpecificAttributes(std2wxIdentifier(Lstr, converter));
+
+    statement->Get(6, Lid);
+    setCharacterSetId(Lid);
+
+    setPropertiesLoaded(true);
+
+}
+
 std::string Collation::getLoadStatement(bool list)
 {
     std::string stmt("select 	"
@@ -55,11 +111,11 @@ std::string Collation::getLoadStatement(bool list)
         stmt += " order by c.RDB$COLLATION_NAME";
     }
     else
-        stmt += " where c.RDB$COLLATION_NAME = ?";
+        stmt += " where c.RDB$COLLATION_NAME = ? ";
     return stmt;
 }
 
-void Collation::loadProperties(IBPP::Statement& statement, wxMBConv* converter)
+void Collation::loadProperties_(IBPP::Statement& statement, wxMBConv* converter)
 {
     setPropertiesLoaded(false);
 
@@ -87,7 +143,7 @@ void Collation::loadProperties(IBPP::Statement& statement, wxMBConv* converter)
     setPropertiesLoaded(true);
 }
 
-void Collation::loadProperties()
+void Collation::loadProperties_()
 {
     setPropertiesLoaded(false);
 
@@ -102,7 +158,7 @@ void Collation::loadProperties()
     if (!st1->Fetch())
         throw FRError(_("Exception not found: ") + getName_());
 
-    loadProperties(st1, converter);
+    loadProperties_(st1, converter);
 }
 
 Collation::Collation()
@@ -306,10 +362,22 @@ wxString Collations14::getQuotedSchemaName() const
     return getParent()->getQuotedName() << ".";
 }
 
+std::string Collation14::getWhereLoadStmt()
+{
+    return Collation::getWhereLoadStmt() + " and RDB$SCHEMA_NAME = ? ";
+}
+
+void Collation14::setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter)
+{
+    Collation::setParamsLoadStmt(statement, converter);
+    
+    statement->Set(2, wx2std(getSchemaName_(), converter));
+}
+
 Collation14::Collation14(MetadataItem* parent, const wxString& name, int id)
     :Collation(parent, name, id)
 {
-
+    setSchemaName_(getParent()->getName_());
 }
 
 void Collation14::acceptVisitor(MetadataItemVisitor* visitor)

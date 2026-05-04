@@ -41,9 +41,7 @@
 #include "core/StringUtils.h"
 #include "engine/MetadataLoader.h"
 #include "core/ProgressIndicator.h"
-#include "frutils.h"
-#include "gui/AdvancedMessageDialog.h"
-#include "metadata/14_0/schema.h"
+#include "metadata/schema.h"
 #include "metadata/MetadataItemVisitor.h"
 
 #include "metadata/MetadataContainer.h"
@@ -65,7 +63,11 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
     : MetadataItem(ntSchema, parent, name),
     characterSetNameM(wxEmptyString), characterSetSchemaNameM(wxEmptyString)
 {
-    metadataContainerM = std::make_shared<MetadataContainer>();
+    metadataContainerM = std::make_shared<MetadataContainer_14_0>();
+
+
+    std::dynamic_pointer_cast<MetadataContainer_14_0>(metadataContainerM)->setSchemaName(name);
+
     ensurePropertiesLoaded();
     if (isSystem() )
     {
@@ -228,7 +230,8 @@ void Schema::unlockChildren()
 
 void Schema::loadCollections(ProgressIndicator* pi)
 {
-    getMetadataContainer()->loadCollections(pi, getDatabase());
+    wxString cs = "NONE";
+    getMetadataContainer()->loadCollections(pi, getDatabase(), cs);
 }
 
 void Schema::acceptVisitor(MetadataItemVisitor* visitor)

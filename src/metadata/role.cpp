@@ -41,7 +41,7 @@
 
 Role::Role(DatabasePtr database, const wxString& name)
     : MetadataItem(hasSystemPrefix(name) ? ntSysRole : ntRole, database.get(),
-        name)
+        name, -1)
 {
 }
 

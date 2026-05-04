@@ -168,9 +168,10 @@ private:
 
     bool connectedM;
     bool volatileM;
-    wxString databaseCharsetM;
     wxString connectionUserM;
     wxString connectionRoleM;
+    wxString databaseCharsetM;
+    CharacterSetPtr defaultCharsetM;
 
     int lingerM; // ODS 12
     wxString sqlSecurityM; // ODS 13

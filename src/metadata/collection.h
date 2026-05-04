@@ -319,8 +319,11 @@ public:
     MetadataItemPtr findByMetadataId_(const int& id) const override 
     {
         for (const auto& item : itemsM) {
-            if (item && item->getMetadataId() == id) {
-                return std::static_pointer_cast<MetadataItem>(item);
+            if (item  && item->getMetadataId() == id) {
+                //int LId = item->getMetadataId();
+                //if (LId == id) {
+                    return std::static_pointer_cast<MetadataItem>(item);
+                //}
             }
         }
         return nullptr;

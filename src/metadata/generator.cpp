@@ -42,7 +42,7 @@
 #include "sql/StatementBuilder.h"
 
 Generator::Generator(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntGenerator, database.get(), name), 
+    : MetadataItem(ntGenerator, database.get(), name, -1), 
     initialValueM(0) ,incrementalValueM(0)
 {
 }

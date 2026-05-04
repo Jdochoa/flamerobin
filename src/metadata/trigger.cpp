@@ -79,7 +79,7 @@ Trigger::FiringTime Trigger::getFiringTime(int type)
 }
 
 Trigger::Trigger(NodeType type, DatabasePtr database, const wxString& name)
-    : MetadataItem(type, database.get(), name), activeM(true)
+    : MetadataItem(type, database.get(), name, -1), activeM(true)
 {
 }
 

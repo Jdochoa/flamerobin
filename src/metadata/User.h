@@ -29,6 +29,33 @@
 
 #include "metadata/MetadataClasses.h"
 #include "metadata/metadataitem.h"
+#include "metadata/metadataitemvisitor.h"
+
+class UserAttribute : public MetadataItem
+    , public std::enable_shared_from_this<UserAttribute>
+{
+private:
+    wxString valueM;
+    wxString pluginM;
+protected:
+    //virtual void loadProperties();
+    virtual void loadProperties();
+public:
+    UserAttribute(MetadataItem* user, wxString name);
+    UserAttribute(DatabasePtr database, const wxString& name);
+
+    wxString getValue() const;
+    wxString getPlugin() const;
+
+    void setValue(const wxString& value);
+    void setPlugin(const wxString& plugin);
+
+    virtual const wxString getTypeName() const { return "USERATTIBUTES"; };
+    virtual void acceptVisitor(MetadataItemVisitor* visitor);
+    ;
+};
+
+
 
 class User: public MetadataItem
     ,public std::enable_shared_from_this<User>
@@ -80,6 +107,90 @@ public:
     
 };
 
+class User11_0 : public User
+{
+protected:
+    virtual void loadProperties();
+public:
+    User11_0(ServerPtr server);
+    User11_0(ServerPtr server, const IBPP::User& src);
+    User11_0(DatabasePtr database, const wxString& name);
+};
+
+class User12_0 : public User11_0
+{
+private:
+    bool activeM;
+    bool adminM;
+    wxString pluginM;
+
+    UserAttributesPtr userAttibutesM;
+    //UserAttributePtrs userAttibutesM;
+    //void loadAttributes(ProgressIndicator* progressIndicator);
+protected:
+    virtual void loadProperties();
+
+    virtual void loadChildren();
+    virtual void lockChildren();
+    virtual void unlockChildren();
+
+    virtual wxString getAttributes();
+
+
+public:
+    User12_0(DatabasePtr database, const wxString& name);
+
+
+    wxString getPlugin() const;
+    bool getActive() const;
+    bool getAdmin() const;
+
+    void setPlugin(const wxString& value);
+    void setActive(const bool& value);
+    void setAdmin(const bool& value);
+
+
+    virtual bool getChildren(std::vector<MetadataItem*>& temp);
+    virtual size_t getChildrenCount() const;
+
+    UserAttributePtrs::iterator begin();
+    UserAttributePtrs::iterator end();
+    UserAttributePtrs::const_iterator begin() const;
+    UserAttributePtrs::const_iterator end() const;
+
+    // MetadataItem interface
+    virtual const wxString getTypeName() const { return "USER"; };
+    virtual void acceptVisitor(MetadataItemVisitor* visitor) { visitor->visitUser(*this); };
+    virtual wxString getSource();
+    virtual wxString getAlterSqlStatement();
+    virtual wxString getCreateSqlStatement();
+
+
+};
+
+
+class UserAttributes : public MetadataCollection<UserAttribute>
+{
+private:
+    wxString userNameM;
+    wxString pluginM;
+public:
+    UserAttributes(DatabasePtr database);
+    virtual void load(ProgressIndicator* progressIndicator);
+
+    virtual ItemType newItem(const wxString& name) {
+        ItemType item(new UserAttribute(getDatabase(), name));
+        return item;
+    }
+
+    void setUserName(const wxString& userName);
+    void setPlugin(const wxString& plugin);
+    wxString getUserName() const;
+    wxString getPlugin() const;
+};
+
+
+
 class Users : public MetadataCollection<User>
 {
 protected:
@@ -94,6 +205,31 @@ public:
 
 };
 
+class Users11_0 : public Users
+{
+public:
+    Users11_0(DatabasePtr database);
+    virtual void load(ProgressIndicator* progressIndicator);
 
+    virtual ItemType newItem(const wxString& name) {
+        ItemType item(new User11_0(getDatabase(), name));
+        return item;
+    }
+
+};
+
+class Users12_0 : public Users11_0
+{
+protected:
+    virtual void loadChildren();
+public:
+    Users12_0(DatabasePtr database);
+    virtual void load(ProgressIndicator* progressIndicator);
+
+    ItemType newItem(const wxString& name) override {
+        ItemType item(new User12_0(getDatabase(), name));
+        return item;
+    }
+};
 
 #endif // FR_USER_H

@@ -51,7 +51,7 @@
 #include "metadata/role.h"
 #include "metadata/table.h"
 #include "metadata/view.h"
-#include "metadata/12_0/User12_0.h"
+#include "metadata/User.h"
 
 // forward declaration to keep compilers happy
 void addIndex(std::vector<Index> *ix, wxString& sql, ColumnConstraint *cc);

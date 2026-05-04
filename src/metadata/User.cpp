@@ -39,6 +39,114 @@
 #include "metadata/server.h"
 #include "metadata/User.h"
 
+UserAttributePtrs::iterator User12_0::begin()
+{
+    return userAttibutesM->begin();
+}
+
+UserAttributePtrs::iterator User12_0::end()
+{
+    return userAttibutesM->end();
+}
+
+UserAttributePtrs::const_iterator User12_0::begin() const
+{
+    return userAttibutesM->begin();
+}
+
+UserAttributePtrs::const_iterator User12_0::end() const
+{
+    return userAttibutesM->end();
+}
+
+UserAttribute::UserAttribute(MetadataItem* user, wxString name)
+    : MetadataItem(ntUserAttribute, user, name)
+{}
+
+UserAttribute::UserAttribute(DatabasePtr database, const wxString& name)
+    : MetadataItem(ntUserAttribute, database.get(), name)
+{}
+
+wxString UserAttribute::getValue() const
+{
+    return valueM;
+}
+
+wxString UserAttribute::getPlugin() const
+{
+    return pluginM;
+}
+
+void UserAttribute::setValue(const wxString& value)
+{
+    valueM = value;
+}
+
+void UserAttribute::setPlugin(const wxString& plugin)
+{
+    pluginM = plugin;
+}
+
+void UserAttribute::loadProperties()
+{
+    DatabasePtr db = getDatabase();
+
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(
+        "select sec$user_name, "
+        "sec$first_name, "
+        "sec$middle_name, "
+        "sec$last_name, "
+        "sec$active, "
+        "sec$admin, "
+        "sec$description, "
+        "sec$plugin "
+        "from sec$users "
+        "where sec$user_name = ? "
+    );
+    st1->Set(1, wx2std(getName_(), converter));
+    st1->Execute();
+    if (!st1->Fetch())
+        throw FRError(_("User not found: ") + getName_());
+
+    setPropertiesLoaded(false);
+    std::string lstr;
+
+
+    if (st1->IsNull(2))
+        lstr = "";
+    else
+        st1->Get(2, lstr);
+    //setFirstName(lstr);
+
+    if (st1->IsNull(3))
+        lstr = "";
+    else
+        st1->Get(3, lstr);
+    //setMiddleName(lstr);
+
+    if (st1->IsNull(4))
+        lstr = "";
+    else
+        st1->Get(4, lstr);
+    //setLastName(lstr);
+
+    if (st1->IsNull(4))
+        lstr = "";
+    else
+        st1->Get(4, lstr);
+    //setLastName(lstr);
+
+    setPropertiesLoaded(true);
+    notifyObservers();
+
+}
+
+
+
 void User::loadProperties()
 {
     serverM = getDatabase()->getServer();
@@ -61,7 +169,7 @@ User::User(ServerPtr server, const IBPP::User& src)
 }
 
 User::User(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntUser, database.get(), name)
+    : MetadataItem(ntUser, database.get(), name, -1)
 {
 }
 
@@ -242,6 +350,40 @@ bool User::isSystem() const
     return usernameM == "SYSDBA";
 }
 
+
+
+void User11_0::loadProperties()
+{
+    setPropertiesLoaded(false);
+
+    DatabasePtr db = getDatabase();
+    setServer(db->getServer());
+
+    IBPP::Service svc;
+    if (db->getServer()->getService(svc, NULL, true)) {
+        IBPP::User usr;
+        usr.username = getName_();
+        svc->GetUser(usr);
+        setUserIBPP(usr);
+    }
+
+    setPropertiesLoaded(true);
+    notifyObservers();
+}
+
+User11_0::User11_0(ServerPtr server)
+    : User(server)
+{}
+
+User11_0::User11_0(ServerPtr server, const IBPP::User& src)
+    :User(server, src)
+{}
+
+User11_0::User11_0(DatabasePtr database, const wxString& name)
+    :User(database, name)
+{}
+
+
 void Users::loadChildren()
 {
     load(0);
@@ -262,5 +404,327 @@ const wxString Users::getTypeName() const
     return "USERS_COLLECTION";
 }
 
+Users11_0::Users11_0(DatabasePtr database)
+    :Users(database)
+{}
+
+void Users11_0::load(ProgressIndicator*)
+{
+    DatabasePtr db = getDatabase();
+    IBPP::Service svc;
+    if (db->getServer()->getService(svc, NULL, true)) {   // true = SYSDBA
+
+        std::vector<IBPP::User> usr;
+        svc->GetUsers(usr);
+        for (std::vector<IBPP::User>::iterator it = usr.begin();
+            it != usr.end(); ++it)
+        {
+            insert(it->username);
+        }
+        notifyObservers();
+        setChildrenLoaded(true);
+
+    }
+
+}
+
+Users12_0::Users12_0(DatabasePtr database)
+    :Users11_0(database)
+{}
+
+void Users12_0::load(ProgressIndicator* progressIndicator)
+{
+    DatabasePtr db = getDatabase();
+    wxString stmt = "select sec$user_name from sec$users order by 1 ";
+    setItems(db->loadIdentifiers(stmt, progressIndicator));
+}
+
+void Users12_0::loadChildren()
+{
+    load(0);
+}
 
 
+void User12_0::loadProperties()
+{
+    DatabasePtr db = getDatabase();
+
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(
+        "select sec$user_name, "
+        "sec$first_name, "
+        "sec$middle_name, "
+        "sec$last_name, "
+        "sec$active, "
+        "sec$admin, "
+        "sec$description, "
+        "sec$plugin "
+        "from sec$users "
+        "where sec$user_name = ? "
+    );
+    st1->Set(1, wx2std(getName_(), converter));
+    st1->Execute();
+    if (!st1->Fetch())
+        throw FRError(_("User not found: ") + getName_());
+
+    setPropertiesLoaded(false);
+    std::string lstr;
+    bool lbool;
+
+
+    if (st1->IsNull(2))
+        lstr = "";
+    else
+        st1->Get(2, lstr);
+    setFirstName(lstr);
+
+    if (st1->IsNull(3))
+        lstr = "";
+    else
+        st1->Get(3, lstr);
+    setMiddleName(lstr);
+
+    if (st1->IsNull(4))
+        lstr = "";
+    else
+        st1->Get(4, lstr);
+    setLastName(lstr);
+
+    if (st1->IsNull(4))
+        lstr = "";
+    else
+        st1->Get(4, lstr);
+    setLastName(lstr);
+
+    if (st1->IsNull(5))
+        lbool = false;
+    else
+        st1->Get(5, lbool);
+    setActive(lbool);
+
+    if (st1->IsNull(6))
+        lbool = false;
+    else
+        st1->Get(6, lbool);
+    setAdmin(lbool);
+
+    if (st1->IsNull(8))
+        lstr = "";
+    else
+        st1->Get(8, lstr);
+    setPlugin(lstr);
+
+    setPropertiesLoaded(true);
+    notifyObservers();
+}
+
+void User12_0::loadChildren()
+{
+    ensurePropertiesLoaded();
+
+    setChildrenLoaded(false);
+
+    userAttibutesM->setUserName(getName_());
+    userAttibutesM->setPlugin(getPlugin());
+
+    userAttibutesM->load(0);
+
+    setChildrenLoaded(true);
+}
+
+void User12_0::lockChildren()
+{
+    userAttibutesM->lockSubject();
+    //std::for_each(userAttibutesM.begin(), userAttibutesM.end(),
+    //    std::mem_fn(&UserAttribute::lockSubject));
+
+}
+
+void User12_0::unlockChildren()
+{
+    userAttibutesM->unlockSubject();
+    //std::for_each(userAttibutesM.begin(), userAttibutesM.end(),
+    //    std::mem_fn(&UserAttribute::unlockSubject));
+
+}
+
+User12_0::User12_0(DatabasePtr database, const wxString& name)
+    :User11_0(database, name)
+{
+    userAttibutesM.reset(new UserAttributes(getDatabase()));
+}
+
+wxString User12_0::getPlugin() const
+{
+    return pluginM;
+}
+
+bool User12_0::getActive() const
+{
+    return activeM;
+}
+
+bool User12_0::getAdmin() const
+{
+    return adminM;
+}
+
+wxString User12_0::getSource()
+{
+    wxString sql = User::getSource();
+    sql = sql
+        << (getActive() ? "ACTIVE" : "INACTIVE") << " \n"
+        << (getAdmin() ? "GRANT ADMIN ROLE \n" : "")
+        << (!getPlugin().IsEmpty() ? "USING PLUGIN " + getPlugin() : "")
+        ;
+
+    return sql;
+}
+
+wxString User12_0::getAlterSqlStatement()
+{
+    return  "ALTER USER "
+        + getQuotedName() + " \n"
+        + getSource() + " \n"
+        + getAttributes() + " \n"
+        + ";\n";
+}
+
+wxString User12_0::getCreateSqlStatement()
+{
+    return  "CREATE USER "
+        + getQuotedName() + " \n"
+        + getSource() + " \n"
+        + getAttributes() + " \n"
+        + ";\n";
+}
+
+wxString User12_0::getAttributes()
+{
+    wxString sql;
+
+    ensureChildrenLoaded();
+    wxString attr = "";
+    for (UserAttributePtrs::iterator it = begin(); it != end(); ++it)
+    {
+        if (!attr.IsEmpty())
+            attr << ", ";
+        attr << (*it).get()->getName_() << " = '" << (*it).get()->getValue();
+    }
+
+    if (!attr.IsEmpty()) {
+        sql << "TAGS ( " << attr << ")" << " \n";
+    }
+
+    return sql;
+}
+
+bool User12_0::getChildren(std::vector<MetadataItem*>& temp)
+{
+    if (userAttibutesM->empty())
+        return false;
+    userAttibutesM->getChildren(temp);
+    //temp.push_back(userAttibutesM->get());
+    //std::transform(userAttibutesM.begin(), userAttibutesM.end(),
+    //    std::back_inserter(temp), std::mem_fn(&UserAttributePtr::get));
+
+    return !userAttibutesM->empty();
+
+}
+
+size_t User12_0::getChildrenCount() const
+{
+    return userAttibutesM->getChildrenCount();
+}
+
+void User12_0::setPlugin(const wxString& plugin)
+{
+    pluginM = plugin;
+}
+
+void User12_0::setActive(const bool& value)
+{
+    activeM = value;
+}
+
+void User12_0::setAdmin(const bool& value)
+{
+    adminM = value;
+}
+
+
+UserAttributes::UserAttributes(DatabasePtr database)
+    : MetadataCollection<UserAttribute>(ntUserAttributes, database, _("UserAttributes"))
+{}
+
+void UserAttributes::load(ProgressIndicator* progressIndicator)
+{
+    DatabasePtr db = getDatabase();
+
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(
+        "Select  SEC$KEY, SEC$VALUE "
+        "From SEC$USER_ATTRIBUTES "
+        "Where  SEC$USER_NAME = ? "
+        "And SEC$PLUGIN = ? "
+    );
+    st1->Set(1, wx2std(getUserName(), converter));
+    st1->Set(2, wx2std(getPlugin(), converter));
+
+    st1->Execute();
+    UserAttributePtrs attributes;
+    while (st1->Fetch())
+    {
+        std::string s;
+        wxString key;
+        if (!st1->IsNull(1)) {
+            st1->Get(1, s);
+            key = std2wxIdentifier(s, converter);
+        }
+        wxString value;
+        if (!st1->IsNull(2)) {
+            st1->Get(2, s);
+            value = std2wxIdentifier(s, converter);
+        }
+
+
+        UserAttributePtr attr;// = findParameter(param_name);
+        attr.reset(new UserAttribute(this, key));
+        initializeLockCount(attr, getLockCount());
+        attributes.push_back(attr);
+        attr->setValue(value);
+    }
+    setItems(attributes);
+    //setItems(db->loadIdentifiers(stmt, progressIndicator));
+}
+
+void UserAttributes::setUserName(const wxString& userName)
+{
+    userNameM = userName;
+}
+
+void UserAttributes::setPlugin(const wxString& plugin)
+{
+    pluginM = plugin;
+}
+
+wxString UserAttributes::getUserName() const
+{
+    return userNameM;
+}
+
+wxString UserAttributes::getPlugin() const
+{
+    return pluginM;
+}
+
+void UserAttribute::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    visitor->visitUserAttribute(*this);
+}

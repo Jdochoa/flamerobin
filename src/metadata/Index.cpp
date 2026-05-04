@@ -123,7 +123,7 @@ void Index::loadProperties()
 }
 
 Index::Index(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntIndex, database.get(), name), activeM(true)
+    : MetadataItem(ntIndex, database.get(), name, -1), activeM(true)
 {
 }
 

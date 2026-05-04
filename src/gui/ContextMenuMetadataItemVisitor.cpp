@@ -48,7 +48,7 @@
 #include "metadata/role.h"
 #include "metadata/root.h"
 #include "metadata/server.h"
-#include "metadata/14_0/schema.h"
+#include "metadata/schema.h"
 #include "metadata/table.h"
 #include "metadata/trigger.h"
 #include "metadata/view.h"

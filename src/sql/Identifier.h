@@ -29,6 +29,7 @@
 class Identifier
 {
 private:
+    wxString schemaM;
     wxString textM;
     int dialectM;
     static bool needsQuoting(const wxString& s, int sqldialect = 3);

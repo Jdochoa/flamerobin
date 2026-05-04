@@ -50,7 +50,7 @@
 #include "metadata/procedure.h"
 
 Package::Package(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntPackage, database.get(), name)
+    : MetadataItem(ntPackage, database.get(), name, -1)
 {
 }
 
@@ -511,7 +511,7 @@ const wxString Packages::getTypeName() const
 
 Method::Method(MetadataItem* parent, 
     const wxString& name)
-    : MetadataItem(ntMethod, parent, name), functionM(false)
+    : MetadataItem(ntMethod, parent, name, -1), functionM(false)
 {
 }
 

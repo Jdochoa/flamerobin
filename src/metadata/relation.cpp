@@ -48,7 +48,7 @@
 #include "sql/StatementBuilder.h"
 
 Relation::Relation(NodeType type, DatabasePtr database, const wxString& name)
-    : MetadataItem(type, database.get(), name)
+    : MetadataItem(type, database.get(), name, -1)
 {
 }
 

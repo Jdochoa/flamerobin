@@ -41,7 +41,7 @@
 
 ColumnBase::ColumnBase(NodeType type, MetadataItem* parent,
         const wxString& name)
-    : MetadataItem(type, parent, name), hasDefaultM(false)
+    : MetadataItem(type, parent, name, -1), hasDefaultM(false)
 {
 }
 
