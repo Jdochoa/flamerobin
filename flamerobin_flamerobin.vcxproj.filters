@@ -55,42 +55,6 @@
     <Filter Include="Source Files\firebird">
       <UniqueIdentifier>{03ec6670-5d69-4bf4-a2eb-10529ba472d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\metadata\11_0">
-      <UniqueIdentifier>{67a3ec36-909d-4c0a-be77-21ca7cd3abaf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\metadata\11_1">
-      <UniqueIdentifier>{87dc48ef-df38-4564-b5df-0859833eb681}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\metadata\11_2">
-      <UniqueIdentifier>{7ae87b6d-5702-4f58-b6e1-cf7d220be12d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\metadata\12_0">
-      <UniqueIdentifier>{db08434e-69be-4ec2-b22f-4d673671bc1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\metadata\13_0">
-      <UniqueIdentifier>{a6ff2c34-c96d-4602-986f-0e73b3b88d99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\11_0">
-      <UniqueIdentifier>{2f15c2a1-c77d-4af7-b931-6018110e2742}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\11_1">
-      <UniqueIdentifier>{206a5b21-ce46-4427-aee7-faf4bc239458}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\11_2">
-      <UniqueIdentifier>{75c73954-88ee-406c-a819-d2974d2d1468}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\12_0">
-      <UniqueIdentifier>{a402d690-8064-4bee-bc53-71a68a864da5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\13_0">
-      <UniqueIdentifier>{b4ea120f-e41a-4ce0-abad-cd56d33d396e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\metadata\14_0">
-      <UniqueIdentifier>{4e68876d-5ccc-4d24-a33c-9bf945257065}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\metadata\14_0">
-      <UniqueIdentifier>{231fa732-9222-47ae-84c5-671d1943d8ac}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\AboutBox.cpp">
@@ -456,16 +420,10 @@
     <ClCompile Include="src\gui\PreferencesDialogStyle.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\metadata\11_0\User11_0.cpp">
-      <Filter>Source Files\metadata\11_0</Filter>
-    </ClCompile>
-    <ClCompile Include="src\metadata\12_0\User12_0.cpp">
-      <Filter>Source Files\metadata\12_0</Filter>
-    </ClCompile>
-    <ClCompile Include="src\metadata\14_0\schema.cpp">
-      <Filter>Source Files\metadata\14_0</Filter>
-    </ClCompile>
     <ClCompile Include="src\metadata\MetadataContainer.cpp">
+      <Filter>Source Files\metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="src\metadata\schema.cpp">
       <Filter>Source Files\metadata</Filter>
     </ClCompile>
   </ItemGroup>
@@ -839,16 +797,10 @@
     <ClInclude Include="src\gui\PreferencesDialogStyle.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\metadata\11_0\User11_0.h">
-      <Filter>Header Files\metadata\11_0</Filter>
-    </ClInclude>
-    <ClInclude Include="src\metadata\12_0\User12_0.h">
-      <Filter>Header Files\metadata\12_0</Filter>
-    </ClInclude>
-    <ClInclude Include="src\metadata\14_0\schema.h">
-      <Filter>Header Files\metadata\14_0</Filter>
-    </ClInclude>
     <ClInclude Include="src\metadata\MetadataContainer.h">
+      <Filter>Header Files\metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="src\metadata\schema.h">
       <Filter>Header Files\metadata</Filter>
     </ClInclude>
   </ItemGroup>
@@ -856,5 +808,8 @@
     <ResourceCompile Include="res\flamerobin.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assessment.md" />
   </ItemGroup>
 </Project>
