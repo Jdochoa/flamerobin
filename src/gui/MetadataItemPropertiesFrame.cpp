@@ -102,7 +102,8 @@ MetadataItemPropertiesPanel::MetadataItemPropertiesPanel(
     wxASSERT(object);
     mipPanels.push_back(this);
 
-    html_window = new PrintableHtmlWindow(this, wxID_ANY);
+    //html_window = new PrintableHtmlWindow(this, wxID_ANY);
+    html_window = static_cast<PrintableHtmlWindow*>(wxWebView::New(parent, wxID_ANY));
     parent->SetTitle(object->getName_());
 
     wxBoxSizer* bSizer2 = new wxBoxSizer( wxVERTICAL );
@@ -151,8 +152,11 @@ void MetadataItemPropertiesPanel::requestLoadPage(bool showLoadingPage)
     {
         if (showLoadingPage)
         {
-            html_window->LoadFile(config().getHtmlTemplatesPath()
-                + "ALLloading.html");
+            wxString html;
+            wxFile file(config().getHtmlTemplatesPath()+"ALLloading.html");
+            file.ReadAll(&html);
+
+            html_window->SetPage(html, "");
         }
 
         Connect(wxID_ANY, wxEVT_IDLE,
@@ -208,15 +212,15 @@ void MetadataItemPropertiesPanel::loadPage()
 
     wxWindowUpdateLocker freeze(html_window);
     int x = 0, y = 0;
-    html_window->GetViewStart(&x, &y);         // save scroll position
+    //html_window->GetViewStart(&x, &y);         // save scroll position
     html_window->setPageSource(htmlpage);
-    html_window->Scroll(x, y);                 // restore scroll position
+    //html_window->Scroll(x, y);                 // restore scroll position
 
     // set title
     if (MetadataItemPropertiesFrame* pf = getParentFrame())
     {
         pf->setTabTitle(this, objectM->getName_() + ": "
-            + html_window->GetOpenedPageTitle());
+            + "html_window->GetOpenedPageTitle()");
     }
 }
 

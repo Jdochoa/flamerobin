@@ -567,8 +567,9 @@ void DataGridTable::importBlobFile(const wxString& filename, int row, int col,
     // tell the grid it's done
     if (GetView())
     {
-        wxGridTableMessage msg(this, wxGRIDTABLE_REQUEST_VIEW_GET_VALUES);
-        GetView()->ProcessTableMessage(msg);
+        //wxGridTableMessage msg(this, wxGRIDTABLE_REQUEST_VIEW_GET_VALUES);
+        //GetView()->ProcessTableMessage(msg);
+        GetView()->ForceRefresh();
     }
 }
 

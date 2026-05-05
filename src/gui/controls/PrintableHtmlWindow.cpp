@@ -63,8 +63,10 @@ HtmlPrinter::~HtmlPrinter()
 
 //! PrintableHtmlWindow class
 PrintableHtmlWindow::PrintableHtmlWindow(wxWindow* parent, wxWindowID id)
-    : wxHtmlWindow(parent, id)
+    // : wxWebView()
+    //: wxHtmlWindow(parent, id)
 {
+    Create(parent, id);
 #ifdef __WXGTK20__
     // default fonts are just too big on GTK2
     int sizes[] = { 7, 8, 10, 12, 16, 22, 30 };
@@ -72,7 +74,8 @@ PrintableHtmlWindow::PrintableHtmlWindow(wxWindow* parent, wxWindowID id)
 #endif
 }
 
-BEGIN_EVENT_TABLE(PrintableHtmlWindow, wxHtmlWindow)
+//BEGIN_EVENT_TABLE(PrintableHtmlWindow, wxHtmlWindow)
+BEGIN_EVENT_TABLE(PrintableHtmlWindow, wxWebView)
     EVT_RIGHT_UP(PrintableHtmlWindow::OnRightUp)
     EVT_MENU(wxID_COPY, PrintableHtmlWindow::OnMenuCopy)
     #ifdef _DEBUG
@@ -101,7 +104,7 @@ void PrintableHtmlWindow::OnRightUp(wxMouseEvent& event)
     m.Append(wxID_PRINT, _("&Print..."));
 
     bool isLink = false;
-    if (m_Cell) // taken from wx's htmlwin.cpp
+    /*if (m_Cell) // taken from wx's htmlwin.cpp
     {
         wxPoint pos = CalcUnscrolledPosition(event.GetPosition());
         wxHtmlCell *cell = m_Cell->FindCellByPos(pos.x, pos.y);
@@ -116,23 +119,24 @@ void PrintableHtmlWindow::OnRightUp(wxMouseEvent& event)
                 isLink = true;
             }
         }
-    }
+    }*/
 
     m.Enable(wxID_NEW, isLink);
     m.Enable(wxID_ADD, isLink);
-    m.Enable(wxID_COPY, !SelectionToText().IsEmpty());
+    //m.Enable(wxID_COPY, !SelectionToText().IsEmpty());
     PopupMenu(&m, ScreenToClient(::wxGetMousePosition()));
 }
 
 void PrintableHtmlWindow::setPageSource(const wxString& html)
 {
     pageSourceM = html;
-    SetPage(pageSourceM);
+    LoadURL(pageSourceM);
 }
 
 void PrintableHtmlWindow::OnMenuCopy(wxCommandEvent& WXUNUSED(event))
 {
-    CopySelection();
+    if (HasSelection())
+        Copy();
 }
 
 void PrintableHtmlWindow::OnMenuCopyAllHtml(wxCommandEvent& WXUNUSED(event))
@@ -177,7 +181,7 @@ void PrintableHtmlWindow::OnMenuNewWindow(wxCommandEvent& WXUNUSED(event))
 void PrintableHtmlWindow::OnMenuSave(wxCommandEvent& WXUNUSED(event))
 {
     wxString filename = wxFileSelector(_("Save as HTML..."), wxEmptyString,
-        GetOpenedPageTitle(), "*.html",
+        GetCurrentTitle(), "*.html",
         _("HTML files (*.html)|*.html|All files (*.*)|*.*"),
         wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
     if (filename.IsEmpty())
@@ -208,30 +212,31 @@ void PrintableHtmlWindow::OnMenuSave(wxCommandEvent& WXUNUSED(event))
 
 void PrintableHtmlWindow::OnMenuPreview(wxCommandEvent& WXUNUSED(event))
 {
-    HtmlPrinter::getHEP()->SetHeader(GetOpenedPageTitle());
+    /*HtmlPrinter::getHEP()->SetHeader(GetCurrentTitle());
     HtmlPrinter::getHEP()->SetFooter(
         _("Printed from FlameRobin - www.flamerobin.org"));
-    HtmlPrinter::getHEP()->PreviewText(pageSourceM);
+    HtmlPrinter::getHEP()->PreviewText(pageSourceM);*/
 }
 
 void PrintableHtmlWindow::OnMenuPrint(wxCommandEvent& WXUNUSED(event))
 {
-    HtmlPrinter::getHEP()->SetHeader(GetOpenedPageTitle());
+    /*HtmlPrinter::getHEP()->SetHeader(GetCurrentTitle());
     HtmlPrinter::getHEP()->SetFooter(
         _("Printed from FlameRobin - www.flamerobin.org"));
-    HtmlPrinter::getHEP()->PrintText(pageSourceM);
+    HtmlPrinter::getHEP()->PrintText(pageSourceM);*/
 }
 
 //! Link is in format: "protocol://action?name=value&amp;name=value...etc.
-void PrintableHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link)
+void PrintableHtmlWindow::OnLinkClicked(wxWebViewEvent& event)
 {
-    wxString addr = link.GetHref();
+    wxString addr = event.GetURL();
     URI uri(addr);
     if (uri.protocol == "info")    // not really a link
         return;
     if (uri.protocol != "fr") // call default handler for other protocols
     {
-        wxHtmlWindow::OnLinkClicked(link);
+        wxWebViewEvent clone(event);
+        wxWebView::ProcessEvent(clone);
         return;
     }
 
