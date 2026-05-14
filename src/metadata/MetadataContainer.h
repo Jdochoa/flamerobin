@@ -51,10 +51,11 @@ public:
 
 private:
     ContainerType collectionsM;
+    CharacterSetPtr defaultCharsetM;
 public:
     MetadataContainer();
 
-    void loadCollections(ProgressIndicator* pi, DatabasePtr db);
+    void loadCollections(ProgressIndicator* pi, DatabasePtr db, wxString& characterset);
     void dropObject(MetadataItem* object);
     void addObject(NodeType type, const wxString& name);
     void addCollection(const std::shared_ptr<MetadataCollectionBase>& collection);
@@ -66,8 +67,10 @@ public:
     MetadataItemPtr findByTypeAndId(NodeType nt, int id);
     std::vector<wxString> getAllNames() const;
     void getIdentifiers(std::vector<Identifier>& temp);
-    DomainPtr getDomain(const wxString& name);
-    RelationPtr findRelation(const Identifier& name);
+    virtual DomainPtr getDomain(const wxString& name);
+    virtual RelationPtr findRelation(const Identifier& name);
+    virtual CharacterSetPtr getCharactersetById(int id);
+
 
     MetadataCollectionBasePtrs::iterator begin();
     MetadataCollectionBasePtrs::iterator end();
@@ -80,7 +83,7 @@ public:
 
     void lockSubject();
     void unlockSubject();
-    void forEachCollection(const std::function<void(const MetadataCollectionBasePtr&)>& func) const;
+    void forEachCollection(const bool intoSchema,  const std::function<void(const MetadataCollectionBasePtr&)>& func) const;
     void sortCollections();
 
     template <class P, class T>
@@ -92,13 +95,25 @@ public:
                 coll= std::make_shared<T>(dynamic_cast<T&>(*m));
             }
         }
-        if (!coll)
-            throw std::runtime_error("Error: collection is not available.");
+        //if (!coll)
+        //    throw std::runtime_error("Error: collection is not available.");
         
         return coll;
     }
 };
 
+
+class MetadataContainer_14_0
+    :public MetadataContainer
+{
+private:
+    wxString schemaNameM;
+public:
+    MetadataContainer_14_0();
+    DomainPtr getDomain(const wxString& name) override;
+    wxString getSchemaName() const { return schemaNameM; }
+    void setSchemaName(const wxString& name) { schemaNameM = name; }    
+};
 #endif // FR_METADATACONTAINER_H
 
 

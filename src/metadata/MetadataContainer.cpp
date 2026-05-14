@@ -38,9 +38,10 @@
 #include "metadata/domain.h"
 #include "metadata/table.h"
 #include "metadata/view.h"
-#include "metadata/14_0/schema.h"
+#include "metadata/characterset.h"
+#include "metadata/schema.h"
 
-MetadataContainer::MetadataContainer() 
+MetadataContainer::MetadataContainer()
 { 
     collectionsM.clear(); 
 }
@@ -52,7 +53,7 @@ void MetadataContainer::addCollection(const std::shared_ptr<MetadataCollectionBa
 
 void MetadataContainer::getCollections(std::vector<MetadataItem*>& temp, bool system)
 {
-    forEachCollection([&temp](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&temp](const MetadataCollectionBasePtr& col) {
         if (/*system && */col->showCollection())
             temp.push_back(&(*col));
         }
@@ -61,7 +62,7 @@ void MetadataContainer::getCollections(std::vector<MetadataItem*>& temp, bool sy
 
 MetadataItemPtr MetadataContainer::findByName(const wxString& name) const 
 {
-    forEachCollection([&name](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&name](const MetadataCollectionBasePtr& col) {
         return col->findByName_(name);
         }
     );
@@ -71,9 +72,16 @@ MetadataItemPtr MetadataContainer::findByName(const wxString& name) const
 
 MetadataItemPtr MetadataContainer::findByTypeAndName(NodeType nt, const wxString& name) 
 {
-    forEachCollection([&nt, &name](const MetadataCollectionBasePtr& col) {
-        if (col->getType() == nt)
+    for (const auto& col : collectionsM) {
+        if (col->getType() == nt) {
             return col->findByName_(name);
+        }
+    }
+    forEachCollection(false, [&nt, &name](const MetadataCollectionBasePtr& col) {
+        if (col->getType() == nt) {
+            return col->findByName_(name);
+        }
+        return MetadataItemPtr();
         }
     );
     return nullptr;
@@ -81,9 +89,10 @@ MetadataItemPtr MetadataContainer::findByTypeAndName(NodeType nt, const wxString
 
 MetadataItemPtr MetadataContainer::findByTypeAndId(NodeType nt, int id)
 {
-    forEachCollection([&nt, &id](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&nt, &id](const MetadataCollectionBasePtr& col) {
         if (col->getType() == nt)
             return col->findByMetadataId_(id);
+        return MetadataItemPtr();
         }
     );
     return nullptr;
@@ -92,7 +101,7 @@ MetadataItemPtr MetadataContainer::findByTypeAndId(NodeType nt, int id)
 std::vector<wxString> MetadataContainer::getAllNames() const 
 {
     std::vector<wxString> list;
-    forEachCollection([&list](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&list](const MetadataCollectionBasePtr& col) {
         col->forEachItem([&list](const MetadataItemPtr& item) {
             list.push_back(item->getName_());
             }
@@ -104,7 +113,7 @@ std::vector<wxString> MetadataContainer::getAllNames() const
 
 void MetadataContainer::getIdentifiers(std::vector<Identifier>& temp)
 {
-    forEachCollection([&temp](const MetadataCollectionBasePtr& item) {
+    forEachCollection(false, [&temp](const MetadataCollectionBasePtr& item) {
         item->forEachItem([&temp](const MetadataItemPtr& item) {
             temp.push_back(item->getIdentifier());
             }
@@ -148,6 +157,29 @@ RelationPtr MetadataContainer::findRelation(const Identifier& name)
     return nullptr;
 }
 
+CharacterSetPtr MetadataContainer::getCharactersetById(int id)
+{
+    CharacterSetPtr lcs;
+    if (defaultCharsetM && defaultCharsetM->getMetadataId() == id)
+        return defaultCharsetM;
+    else
+    {
+        forEachCollection(true, [&id, &lcs](const MetadataCollectionBasePtr& col) {
+            if ((col->getType() == ntCharacterSets) || (col->getType() == ntSysCharacterSets)) {
+                CharacterSetPtr cs =
+                    std::static_pointer_cast<CharacterSet>(col->findByMetadataId_(id));
+                if (cs){
+                    lcs = cs;
+                    //continue;
+                }
+            }
+            return lcs;
+            }
+        );
+    }
+    return lcs;
+}
+
 MetadataCollectionBasePtrs::iterator MetadataContainer::begin()
 {
     return collectionsM.begin();
@@ -185,24 +217,34 @@ size_t MetadataContainer::capacity() const
 
 void MetadataContainer::lockSubject() 
 {
-    forEachCollection([](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [](const MetadataCollectionBasePtr& col) {
         col->lockSubject();
         }
     );
 }
 
 void MetadataContainer::unlockSubject() {
-    forEachCollection([](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [](const MetadataCollectionBasePtr& col) {
         col->unlockSubject();
         }
     );
 }
 
-void MetadataContainer::forEachCollection(
+void MetadataContainer::forEachCollection(const bool intoSchema,
         const std::function<void(const MetadataCollectionBasePtr&)>& func) const
 {
     for (const auto& col : collectionsM) {
-        func(std::static_pointer_cast<MetadataCollectionBase>(col));
+        if (intoSchema && col->getType() == ntSchemas) {
+            col->forEachItem([&intoSchema,&func](const MetadataItemPtr& item) {
+                Schema* schema = dynamic_cast<Schema*>(item.get());
+                if (schema) {
+                    schema->getMetadataContainer()->forEachCollection(intoSchema, func);
+                }
+            });
+        }
+        else {
+            func(std::static_pointer_cast<MetadataCollectionBase>(col));
+        }
     }
 }
 
@@ -215,7 +257,7 @@ void MetadataContainer::sortCollections()
     );
 }
 
-void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)
+void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db, wxString& characterset)
 {
     struct ProgressIndicatorHelper
     {
@@ -240,7 +282,7 @@ void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)
     MetadataLoader* loader = db->getMetadataLoader();
     MetadataLoaderTransaction tr(loader);
     //SubjectLocker lock(db);
-    //if (pi) review performance later 
+    if (pi) //review performance later 
     {
         for (auto col : collectionsM) {
             pih.init(col->getSchemaName_() + col->getName_(), collectionCount, 0);
@@ -253,6 +295,16 @@ void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db)
             }
             else {
                 col->load(pi);
+                if (!defaultCharsetM) {
+                    if ((col->getType() == ntCharacterSets) || (col->getType() == ntSysCharacterSets)) {
+                        // set default charset
+                        CharacterSetPtr defCharset =
+                            std::static_pointer_cast<CharacterSet>(col->findByName_(characterset));
+                        if (defCharset)
+                            defaultCharsetM = defCharset;
+                    }
+                }
+               
             }
             //std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
@@ -262,7 +314,7 @@ void MetadataContainer::dropObject(MetadataItem* object)
 {
     NodeType type = object->getType();
     type = static_cast<NodeType>(static_cast<int>(type) + 1);
-    forEachCollection([&object, &type](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&object, &type](const MetadataCollectionBasePtr& col) {
             if (col->getType() == type) 
                 col->remove(object);
         }
@@ -271,9 +323,48 @@ void MetadataContainer::dropObject(MetadataItem* object)
 void MetadataContainer::addObject(NodeType type, const wxString& name)
 {
     type = static_cast<NodeType>(static_cast<int>(type) + 1);
-    forEachCollection([&name, &type](const MetadataCollectionBasePtr& col) {
+    forEachCollection(false, [&name, &type](const MetadataCollectionBasePtr& col) {
         if (col->getType() == type) 
             col->insert_(name);
         }
     );
+}
+
+MetadataContainer_14_0::MetadataContainer_14_0()
+    : MetadataContainer()
+{
+}
+
+DomainPtr MetadataContainer_14_0::getDomain(const wxString& name)
+{
+    DomainPtr d;
+    //for (const auto& coll : collectionsM) {
+    forEachCollection(false, [&name, &d](const MetadataCollectionBasePtr& coll) {
+        if (!d) {
+            if (coll->getType() == ntSchemas) {
+                coll->forEachItem([&name, &d](const MetadataItemPtr& item) {
+                    //DomainPtr d;
+                    if (!d) {
+                        Schema* schema = dynamic_cast<Schema*>(item.get());
+                        if (schema) {
+                            DomainsPtr domains = schema->getMetadataContainer()->getCollectionPtr<DomainsPtr, Domains>(ntDomains);
+                            if (domains)
+                                d = domains->getDomain(name);
+                            if (!d){
+                                SysDomainsPtr sysdomains = schema->getMetadataContainer()->getCollectionPtr<SysDomainsPtr, SysDomains>(ntSysDomains);
+                                if (sysdomains)
+                                    d = sysdomains->getDomain(name);
+                            }
+                            //if (d)
+                            //    return d;
+                        }
+                    }
+                    }
+                );
+            }
+        }
+        }
+    );
+
+    return DomainPtr();
 }

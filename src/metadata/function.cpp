@@ -48,13 +48,13 @@
 
 
 Function::Function(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntFunction, database.get(), name)
+    : MetadataItem(ntFunction, database.get(), name, -1)
 {
     ensurePropertiesLoaded();
 }
 
 Function::Function(MetadataItem* parent, const wxString& name)
-    : MetadataItem(ntFunction, parent, name)
+    : MetadataItem(ntFunction, parent, name, -1)
 {
     ensurePropertiesLoaded();
 }

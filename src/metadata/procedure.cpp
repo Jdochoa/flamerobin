@@ -48,12 +48,12 @@
 #include "metadata/procedure.h"
 
 Procedure::Procedure(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntProcedure, database.get(), name)
+    : MetadataItem(ntProcedure, database.get(), name, -1)
 {
 }
 
 Procedure::Procedure(MetadataItem* parent, const wxString& name)
-    : MetadataItem(ntProcedure, parent, name)
+    : MetadataItem(ntProcedure, parent, name, -1)
 {
 }
 

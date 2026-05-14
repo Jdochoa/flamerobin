@@ -51,7 +51,7 @@
 #include "metadata/role.h"
 #include "metadata/table.h"
 #include "metadata/view.h"
-#include "metadata/12_0/User12_0.h"
+#include "metadata/User.h"
 
 // forward declaration to keep compilers happy
 void addIndex(std::vector<Index> *ix, wxString& sql, ColumnConstraint *cc);
@@ -156,8 +156,6 @@ void CreateDDLVisitor::visitColumn(Column& c)
         if (d->isSystem())
         {
             preSqlM << d->getDatatypeAsString();
-            if (c.isIdentity())
-                preSqlM << c.getSource(true);
             wxString charset = d->getCharset();
             DatabasePtr db = d->getDatabase();
             if (!charset.IsEmpty())
@@ -173,6 +171,9 @@ void CreateDDLVisitor::visitColumn(Column& c)
     }
     else
         preSqlM <<  c.getSource();  // shouldn't happen
+
+    if (c.isIdentity())
+        preSqlM << c.getSource(true);
 
     wxString defaultValue;
     if (c.getDefault(IgnoreDomainDefault, defaultValue))

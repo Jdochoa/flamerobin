@@ -48,7 +48,6 @@
 #include "metadata/server.h"
 #include "metadata/table.h"
 #include "metadata/User.h"
-#include "metadata/12_0/User12_0.h"
 #include "metadata/view.h"
 #include "metadata/package.h"
 

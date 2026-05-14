@@ -108,4 +108,5 @@ public:
 };
 
 
+
 #endif // FR_CHARACTERSET_H

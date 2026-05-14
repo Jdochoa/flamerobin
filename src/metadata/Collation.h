@@ -47,9 +47,17 @@ private:
 
     friend class SysCollations;
 protected:
+    
+    std::string getColumnsLoadStmt() override;
+    std::string getFromLoadStmt() override;
+    std::string getWhereLoadStmt() override;
+    void setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter) override;
+    void setProperties(IBPP::Statement& statement, wxMBConv* converter) override;
+    
     static std::string getLoadStatement(bool list);
-    void loadProperties(IBPP::Statement& statement, wxMBConv* converter);
-    virtual void loadProperties();
+    void loadProperties_(IBPP::Statement& statement, wxMBConv* converter);
+
+    void loadProperties_();
 
 public:
     Collation();
@@ -77,6 +85,9 @@ public:
 
 class Collation14 : public Collation
 {
+protected:
+    std::string getWhereLoadStmt() override;
+     void setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter) override;
 public:
     Collation14(MetadataItem* parent, const wxString& name, int id = -1);
 
@@ -116,11 +127,14 @@ public:
 
 class Collations14 : public Collations
 {
+private:
+    wxString schemaNameM;
 public:
     Collations14(MetadataItem* schema);
 
     ItemType newItem(const wxString& name) override {
         ItemType item(new Collation14(this, name));
+        item->setSchemaName_(getSchemaName_());
         return item;
     }
 

@@ -131,6 +131,14 @@ typedef std::shared_ptr<SysIndices> SysIndicesPtr;
 class UsrIndices;
 typedef std::shared_ptr<UsrIndices> UsrIndicesPtr;
 
+
+// ToDo: Inplementation pending
+class LTTable;
+typedef std::shared_ptr<LTTable> LTTablePtr;
+typedef std::vector<LTTablePtr> LTTablePtrs;
+class LTTables;
+typedef std::shared_ptr<LTTables> LTTablesPtr;
+
 // ToDo: Inplementation pending
 class Mapping;
 typedef std::shared_ptr<Mapping> MappingPtr;

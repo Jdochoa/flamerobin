@@ -30,6 +30,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <ibpp.h>
+
 #include "core/ObjectWithHandle.h"
 #include "core/ProcessableObject.h"
 #include "core/Subject.h"
@@ -95,6 +97,7 @@ private:
     MetadataItem* parentM;
     NodeType typeM;
     Identifier identifierM;
+    Identifier schemaIdentifierM;
     int metadataIdM;
     bool isSystemM;
 
@@ -114,6 +117,12 @@ protected:
     // used internally if rdb$description column (a blob) is null
     void setDescriptionIsEmpty();
 
+    virtual std::string getColumnsLoadStmt();
+    virtual std::string getFromLoadStmt();
+    virtual std::string getWhereLoadStmt();
+    virtual std::string getLoadStatement();
+    virtual void setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter);
+    virtual void setProperties(IBPP::Statement& statement, wxMBConv* converter);
     virtual void loadProperties();
     void setPropertiesLoaded(bool loaded);
 
@@ -131,8 +140,13 @@ protected:
 
 public:
     MetadataItem();
-    MetadataItem(NodeType type, MetadataItem* parent = 0,
-        const wxString& name = wxEmptyString, int id = -1);
+    explicit MetadataItem(NodeType type, MetadataItem* parent = 0,
+        const wxString& name = wxEmptyString, int id = -1,
+        const wxString& schemaName = wxEmptyString);
+    /*explicit MetadataItem(NodeType type, MetadataItem* parent = 0,
+        const wxString& name = wxEmptyString, 
+        const wxString& schemaName = wxEmptyString,
+        int id = -1);*/
     virtual ~MetadataItem();
 
     virtual void lockSubject();
@@ -176,14 +190,16 @@ public:
     virtual wxString getQuotedName() const;
     virtual Identifier getIdentifier() const;
     virtual void setName_(const wxString& name);
+    virtual wxString getSchemaName_() const;
+    virtual wxString getQuotedSchemaName() const;
+    virtual Identifier getSchemaIdentifier() const;
+    virtual void setSchemaName_(const wxString& name);
     virtual NodeType getType() const;
     void setType(NodeType type);
     virtual int getMetadataId();
     virtual void setMetadataId(int id);
     virtual void setIsSystem(bool isSystem);
     virtual bool getIsSystem() const;
-    virtual wxString getSchemaName_() const;
-    virtual wxString getQuotedSchemaName() const;
 
     // returns the name of the data type (f. ex. TABLE)
     virtual const wxString getTypeName() const;

@@ -80,7 +80,7 @@ std::string Domain::getLoadStatement(bool list)
 
 Domain::Domain(DatabasePtr database, const wxString& name)
     : MetadataItem((hasSystemPrefix(name) ? ntSysDomain : ntDomain),
-        database.get(), name)
+        database.get(), name, -1)
 {
 }
 

@@ -61,7 +61,7 @@ std::string Exception::getLoadStatement(bool list)
 }
 
 Exception::Exception(DatabasePtr database, const wxString& name)
-    : MetadataItem(ntException, database.get(), name), numberM(0)
+    : MetadataItem(ntException, database.get(), name, -1), numberM(0)
 {
 }
 

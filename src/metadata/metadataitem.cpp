@@ -65,19 +65,33 @@ ObjectWithHandle<MetadataItem>::Handle ObjectWithHandle<MetadataItem>::nextHandl
 
 MetadataItem::MetadataItem()
     : Subject(), typeM(ntUnknown), parentM(0), metadataIdM(-1), childrenLoadedM(lsNotLoaded),
-    descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded), isSystemM(false)
+      descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded), isSystemM(false), 
+      schemaIdentifierM(wxEmptyString, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
 {
 }
 
 MetadataItem::MetadataItem(NodeType type, MetadataItem* parent,
-        const wxString& name, int id)
+        const wxString& name, int id, const wxString& schemaName)
    : Subject(), 
-        typeM(type), parentM(parent), identifierM(name, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3),
-        metadataIdM(id),
-        childrenLoadedM(lsNotLoaded), descriptionLoadedM(lsNotLoaded),
-    propertiesLoadedM(lsNotLoaded), isSystemM(false)
+     typeM(type), parentM(parent), 
+     identifierM(name, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3),
+     metadataIdM(id),
+     childrenLoadedM(lsNotLoaded), descriptionLoadedM(lsNotLoaded),
+     propertiesLoadedM(lsNotLoaded), isSystemM(false),
+     schemaIdentifierM(schemaName, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
 {
 }
+
+/*MetadataItem::MetadataItem(NodeType type, MetadataItem* parent,
+    const wxString& name,  const wxString& scehmaName, int id)
+    : Subject(),
+    typeM(type), parentM(parent), identifierM(name, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3),
+    metadataIdM(id),
+    childrenLoadedM(lsNotLoaded), descriptionLoadedM(lsNotLoaded),
+    propertiesLoadedM(lsNotLoaded), isSystemM(false),
+    schemaIdentifierM(scehmaName, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
+{
+}*/
 
 MetadataItem::~MetadataItem()
 {
@@ -246,6 +260,25 @@ bool MetadataItem::propertiesLoaded() const
 
 void MetadataItem::loadProperties()
 {
+    setPropertiesLoaded(false);
+
+    DatabasePtr db = getDatabase();
+    MetadataLoader* loader = db->getMetadataLoader();
+    MetadataLoaderTransaction tr(loader);
+    wxMBConv* converter = db->getCharsetConverter();
+
+    IBPP::Statement& st1 = loader->getStatement(getLoadStatement());
+    setParamsLoadStmt(st1, converter);
+
+    st1->Execute();
+    if (!st1->Fetch())
+        throw FRError(_("Exception not found: ") + getName_());
+
+    setProperties(st1, converter);
+
+    setPropertiesLoaded(true);
+
+
 }
 
 void MetadataItem::setPropertiesLoaded(bool loaded)
@@ -729,6 +762,34 @@ void MetadataItem::setDescriptionIsEmpty()
     descriptionM = wxEmptyString;
 }
 
+std::string MetadataItem::getColumnsLoadStmt()
+{
+    return std::string();
+}
+
+std::string MetadataItem::getFromLoadStmt()
+{
+    return std::string();
+}
+
+std::string MetadataItem::getWhereLoadStmt()
+{
+    return std::string();
+}
+
+std::string MetadataItem::getLoadStatement()
+{
+    return getColumnsLoadStmt() + " " + getFromLoadStmt() + " " + getWhereLoadStmt();
+}
+
+void MetadataItem::setParamsLoadStmt(IBPP::Statement& /*statement*/, wxMBConv* /*converter*/)
+{
+}
+
+void MetadataItem::setProperties(IBPP::Statement& /*statement*/ , wxMBConv* /*converter*/)
+{
+}
+
 MetadataItem* MetadataItem::getParent() const
 {
     return parentM;
@@ -792,12 +853,23 @@ bool MetadataItem::getIsSystem() const
 
 wxString MetadataItem::getSchemaName_() const
 {
-    return wxString();
+    return schemaIdentifierM.get();
 }
 
 wxString MetadataItem::getQuotedSchemaName() const
 {
-    return wxString();
+    return schemaIdentifierM.getQuoted();
+}
+
+Identifier MetadataItem::getSchemaIdentifier() const
+{
+    return schemaIdentifierM;
+}
+
+void MetadataItem::setSchemaName_(const wxString& name)
+{
+    schemaIdentifierM.setText(name);
+    notifyObservers();
 }
 
 // MetadataItemSchema implementations - provide schema-aware helpers
