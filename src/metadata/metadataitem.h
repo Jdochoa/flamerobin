@@ -207,6 +207,36 @@ public:
 
 };
 
+class MetadataItemSchema : public virtual MetadataItem
+{
+private:
+    Identifier schemaM;
+public:
+    MetadataItemSchema();
+    MetadataItemSchema(NodeType type, MetadataItemSchema* parent = 0,
+        const wxString& name = wxEmptyString,  const wxString& schema, 
+        int id = -1);
+    virtual ~MetadataItemSchema();
+
+
+    wxString getName_() const override;
+    wxString getQuotedName() const override;
+    Identifier getIdentifier() const override;
+
+    virtual wxString getSchema() const;
+    virtual wxString getQuotedSchema() const;
+    virtual void setSchema(const wxString& name);
+    virtual Identifier getSchemaIdentifier() const;
+
+    virtual wxString getObjectName() const;
+    virtual wxString getQuotedObjectName() const;
+    virtual void setObjectName(const wxString& name);
+    virtual Identifier getObjectIdentifier() const;
+
+};
+
+
+
 class DependencyField : public MetadataItem
 {
 private:

@@ -800,6 +800,79 @@ wxString MetadataItem::getQuotedSchemaName() const
     return wxString();
 }
 
+// MetadataItemSchema implementations - provide schema-aware helpers
+MetadataItemSchema::MetadataItemSchema()
+    : MetadataItem(), schemaM(3)
+{
+}
+
+MetadataItemSchema::MetadataItemSchema(NodeType type, MetadataItemSchema* parent,
+    const wxString& name, const wxString& schema, int id)
+    : MetadataItem(type, parent, name, id),
+    schemaM(schema, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
+{
+}
+
+MetadataItemSchema::~MetadataItemSchema()
+{
+}
+
+wxString MetadataItemSchema::getName_() const
+{
+    return getSchemaName_() + '.'+ getObjectName();
+}
+
+wxString MetadataItemSchema::getQuotedName() const
+{
+    return getQuotedSchema() + '.' + getQuotedObjectName();
+}
+
+Identifier MetadataItemSchema::getIdentifier() const
+{
+    return MetadataItem::getIdentifier();
+}
+
+wxString MetadataItemSchema::getSchema() const
+{
+    return schemaM.get();
+}
+
+wxString MetadataItemSchema::getQuotedSchema() const
+{
+    return schemaM.getQuoted();
+}
+
+void MetadataItemSchema::setSchema(const wxString& name)
+{
+    schemaM.setText(name);
+    notifyObservers();
+}
+
+Identifier MetadataItemSchema::getSchemaIdentifier() const
+{
+    return schemaM;
+}
+
+wxString MetadataItemSchema::getObjectName() const
+{
+    return getName_();
+}
+
+wxString MetadataItemSchema::getQuotedObjectName() const
+{
+    return getQuotedName();
+}
+
+void MetadataItemSchema::setObjectName(const wxString& name)
+{
+    setName_(name);
+}
+
+Identifier MetadataItemSchema::getObjectIdentifier() const
+{
+    return getIdentifier();
+}
+
 bool MetadataItem::isSystem() const
 {
     return hasSystemPrefix(getName_()) || getIsSystem();
