@@ -96,6 +96,13 @@ typedef std::shared_ptr<Filters> FiltersPtr;
 
 class ForeignKey;
 
+class ForeignServer;
+typedef std::shared_ptr<ForeignServer> ForeignServerPtr;
+typedef std::vector<ForeignServerPtr> ForeignServerPtrs;
+class ForeignServers;
+typedef std::shared_ptr<ForeignServers> ForeignServersPtr;
+
+
 class FunctionSQL;
 typedef std::shared_ptr<FunctionSQL> FunctionSQLPtr;
 typedef std::vector<FunctionSQLPtr> FunctionSQLPtrs;

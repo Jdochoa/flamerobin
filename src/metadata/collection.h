@@ -34,7 +34,7 @@
 #include "metadata/database.h"
 #include "metadata/metadataitem.h"
 
-class MetadataCollectionBase : public MetadataItem
+class MetadataCollectionBase : public virtual MetadataItem
 {
 private:
     DatabaseWeakPtr databaseM;
@@ -115,6 +115,30 @@ public:
 
         return b;
     }
+};
+
+class MetadataCollectionBaseSchema : public MetadataCollectionBase,
+                                     public SchemaOwner
+{
+protected:
+    MetadataCollectionBaseSchema(NodeType type, DatabasePtr database,
+        const wxString& name, const wxString& schema = wxEmptyString)
+        : MetadataCollectionBase(type, database, name),
+          SchemaOwner(type, /*parent*/ nullptr, name, schema, -1)
+    {
+    }
+
+    MetadataCollectionBaseSchema(NodeType type, MetadataItem* parent,
+        const wxString& name, const wxString& schema = wxEmptyString)
+        : MetadataCollectionBase(type, parent, name),
+          SchemaOwner(type, dynamic_cast<SchemaOwner*>(parent), name, schema, -1)
+    {
+    }
+
+public:
+    wxString getName_() const override { return SchemaOwner::getName_(); }
+    wxString getQuotedName() const override { return SchemaOwner::getQuotedName(); }
+    Identifier getIdentifier() const override { return SchemaOwner::getIdentifier(); }
 };
 
 template <class T>

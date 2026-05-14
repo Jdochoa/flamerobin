@@ -65,20 +65,18 @@ ObjectWithHandle<MetadataItem>::Handle ObjectWithHandle<MetadataItem>::nextHandl
 
 MetadataItem::MetadataItem()
     : Subject(), typeM(ntUnknown), parentM(0), metadataIdM(-1), childrenLoadedM(lsNotLoaded),
-      descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded), isSystemM(false), 
-      schemaIdentifierM(wxEmptyString, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
+      descriptionLoadedM(lsNotLoaded), propertiesLoadedM(lsNotLoaded), isSystemM(false)
 {
 }
 
 MetadataItem::MetadataItem(NodeType type, MetadataItem* parent,
-        const wxString& name, int id, const wxString& schemaName)
+        const wxString& name, int id)
    : Subject(), 
      typeM(type), parentM(parent), 
      identifierM(name, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3),
      metadataIdM(id),
      childrenLoadedM(lsNotLoaded), descriptionLoadedM(lsNotLoaded),
-     propertiesLoadedM(lsNotLoaded), isSystemM(false),
-     schemaIdentifierM(schemaName, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
+     propertiesLoadedM(lsNotLoaded), isSystemM(false)
 {
 }
 
@@ -851,96 +849,81 @@ bool MetadataItem::getIsSystem() const
     return isSystemM;
 }
 
-wxString MetadataItem::getSchemaName_() const
-{
-    return schemaIdentifierM.get();
-}
 
-wxString MetadataItem::getQuotedSchemaName() const
-{
-    return schemaIdentifierM.getQuoted();
-}
-
-Identifier MetadataItem::getSchemaIdentifier() const
-{
-    return schemaIdentifierM;
-}
-
-void MetadataItem::setSchemaName_(const wxString& name)
-{
-    schemaIdentifierM.setText(name);
-    notifyObservers();
-}
-
-// MetadataItemSchema implementations - provide schema-aware helpers
-MetadataItemSchema::MetadataItemSchema()
+SchemaOwner::SchemaOwner()
     : MetadataItem(), schemaM(3)
 {
 }
 
-MetadataItemSchema::MetadataItemSchema(NodeType type, MetadataItemSchema* parent,
+SchemaOwner::SchemaOwner(NodeType type, SchemaOwner* parent,
     const wxString& name, const wxString& schema, int id)
     : MetadataItem(type, parent, name, id),
     schemaM(schema, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
 {
 }
 
-MetadataItemSchema::~MetadataItemSchema()
+SchemaOwner::~SchemaOwner()
 {
 }
 
-wxString MetadataItemSchema::getName_() const
+wxString SchemaOwner::getName_() const
 {
-    return getSchemaName_() + '.'+ getObjectName();
+    wxString s = schemaM.get();
+    if (!s.IsEmpty())
+        return s + '.' + getObjectName();
+    return getObjectName();
 }
 
-wxString MetadataItemSchema::getQuotedName() const
+wxString SchemaOwner::getQuotedName() const
 {
-    return getQuotedSchema() + '.' + getQuotedObjectName();
+    wxString s = schemaM.getQuoted();
+    if (!s.IsEmpty())
+        return s + '.' + getQuotedObjectName();
+    return getQuotedObjectName();
 }
 
-Identifier MetadataItemSchema::getIdentifier() const
+Identifier SchemaOwner::getIdentifier() const
 {
     return MetadataItem::getIdentifier();
 }
 
-wxString MetadataItemSchema::getSchema() const
+wxString SchemaOwner::getSchema() const
 {
     return schemaM.get();
 }
 
-wxString MetadataItemSchema::getQuotedSchema() const
+wxString SchemaOwner::getQuotedSchema() const
 {
     return schemaM.getQuoted();
 }
 
-void MetadataItemSchema::setSchema(const wxString& name)
+void SchemaOwner::setSchema(const wxString& name)
 {
     schemaM.setText(name);
     notifyObservers();
 }
 
-Identifier MetadataItemSchema::getSchemaIdentifier() const
+Identifier SchemaOwner::getSchemaIdentifier() const
 {
     return schemaM;
 }
 
-wxString MetadataItemSchema::getObjectName() const
+wxString SchemaOwner::getObjectName() const
 {
     return getName_();
 }
 
-wxString MetadataItemSchema::getQuotedObjectName() const
+wxString SchemaOwner::getQuotedObjectName() const
 {
     return getQuotedName();
 }
 
-void MetadataItemSchema::setObjectName(const wxString& name)
+void SchemaOwner::setObjectName(const wxString& name)
 {
     setName_(name);
 }
 
-Identifier MetadataItemSchema::getObjectIdentifier() const
+Identifier SchemaOwner::getObjectIdentifier() const
 {
     return getIdentifier();
 }
@@ -959,7 +942,7 @@ bool MetadataItem::hasSystemPrefix(const wxString& name)
 
 wxString MetadataItem::getDropSqlStatement() const
 {
-    return "DROP " + getTypeName() + " " + getQuotedSchemaName() + getQuotedName() + ";";
+    return "DROP " + getTypeName() + " " + getQuotedName() + ";";
 }
 
 wxString MetadataItem::getAlterSqlStatement()
@@ -1037,6 +1020,47 @@ Dependency::Dependency(MetadataItem *object, MetadataItem *auxiliar)
 {
     objectM = object;
     auxiliarM = auxiliar;
+}
+
+DependencySchema::DependencySchema(MetadataItem *object, MetadataItem *auxiliar, const wxString& schema)
+    : Dependency(object, auxiliar), 
+      SchemaOwner(ntUnknown, nullptr, object ? object->getName_() : wxEmptyString, schema)
+{
+}
+
+MetadataItem *DependencySchema::getParent() const
+{
+    return Dependency::getParent();
+}
+
+wxString DependencySchema::getName_() const
+{
+    return SchemaOwner::getName_();
+}
+
+wxString DependencySchema::getQuotedName() const
+{
+    return SchemaOwner::getQuotedName();
+}
+
+Identifier DependencySchema::getIdentifier() const
+{
+    return SchemaOwner::getIdentifier();
+}
+
+NodeType DependencySchema::getType() const
+{
+    return Dependency::getType();
+}
+
+const wxString DependencySchema::getTypeName() const
+{
+    return Dependency::getTypeName();
+}
+
+void DependencySchema::acceptVisitor(MetadataItemVisitor* visitor)
+{
+    Dependency::acceptVisitor(visitor);
 }
 
 void Dependency::getFields(std::vector<DependencyField>& fields) const
@@ -1151,3 +1175,10 @@ bool DependencyField::operator<(const DependencyField & other) const
         return this->getName_() < other.getName_();
     return this->positionM < other.positionM;//TODO: enable after fix position in every possible place
 }
+
+DependencyFieldSchema::DependencyFieldSchema(const wxString& name, const wxString& schema, int position)
+    : DependencyField(name, position), 
+       SchemaOwner(ntColumn, nullptr, name, schema)
+{
+}
+

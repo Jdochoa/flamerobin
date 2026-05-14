@@ -128,7 +128,7 @@ wxString CreateDDLVisitor::getSuffixSql() const
 
 void CreateDDLVisitor::visitCollation(Collation& collation)
 {
-    preSqlM += "CREATE COLLATION " + collation.getSchemaName_() + collation.getName_() + " \n" +
+    preSqlM += "CREATE COLLATION "  + collation.getName_() + " \n" +
         collation.getSource() + "\n; \n";
     postSqlM << getCommentOn(collation);
     sqlM = preSqlM + postSqlM;

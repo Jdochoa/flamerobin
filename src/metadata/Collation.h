@@ -92,10 +92,6 @@ public:
     Collation14(MetadataItem* parent, const wxString& name, int id = -1);
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
-
-    wxString getSchemaName_() const override;
-    wxString getQuotedSchemaName() const override;
-
 };
 
 
@@ -134,14 +130,12 @@ public:
 
     ItemType newItem(const wxString& name) override {
         ItemType item(new Collation14(this, name));
-        item->setSchemaName_(getSchemaName_());
+        //item->setSchemaName_(getSchemaName_());
         return item;
     }
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
-    wxString getSchemaName_() const override;
-    wxString getQuotedSchemaName() const override;
 };
 
 #endif // FR_COLLATION_H

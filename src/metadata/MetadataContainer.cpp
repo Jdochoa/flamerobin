@@ -285,7 +285,7 @@ void MetadataContainer::loadCollections(ProgressIndicator* pi, DatabasePtr db, w
     if (pi) //review performance later 
     {
         for (auto col : collectionsM) {
-            pih.init(col->getSchemaName_() + col->getName_(), collectionCount, 0);
+            pih.init(col->getName_(), collectionCount, 0);
             if (col->getType() == ntSchemas) {
                 col->ensureChildrenLoaded();
                 col->forEachItem([&pi](const MetadataItemPtr& item) {

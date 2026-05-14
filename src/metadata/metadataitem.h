@@ -81,6 +81,12 @@ typedef enum {
     ntSysCollation,    ntSysCollations,
     ntCollation,       ntCollations,
     ntSchema,          ntSchemas,
+    ntLTT,             ntLTTs,
+    ntFilter,          ntFilters,
+    ntTableSpace,      ntTableSpaces,
+    ntGlobalMapping,   ntGlobalMappings,
+    ntForeingServer,   ntForeingServers,
+
     ntLastType
 } NodeType;
 
@@ -97,7 +103,6 @@ private:
     MetadataItem* parentM;
     NodeType typeM;
     Identifier identifierM;
-    Identifier schemaIdentifierM;
     int metadataIdM;
     bool isSystemM;
 
@@ -141,12 +146,7 @@ protected:
 public:
     MetadataItem();
     explicit MetadataItem(NodeType type, MetadataItem* parent = 0,
-        const wxString& name = wxEmptyString, int id = -1,
-        const wxString& schemaName = wxEmptyString);
-    /*explicit MetadataItem(NodeType type, MetadataItem* parent = 0,
-        const wxString& name = wxEmptyString, 
-        const wxString& schemaName = wxEmptyString,
-        int id = -1);*/
+        const wxString& name = wxEmptyString, int id = -1);
     virtual ~MetadataItem();
 
     virtual void lockSubject();
@@ -190,10 +190,6 @@ public:
     virtual wxString getQuotedName() const;
     virtual Identifier getIdentifier() const;
     virtual void setName_(const wxString& name);
-    virtual wxString getSchemaName_() const;
-    virtual wxString getQuotedSchemaName() const;
-    virtual Identifier getSchemaIdentifier() const;
-    virtual void setSchemaName_(const wxString& name);
     virtual NodeType getType() const;
     void setType(NodeType type);
     virtual int getMetadataId();
@@ -223,16 +219,16 @@ public:
 
 };
 
-class MetadataItemSchema : public virtual MetadataItem
+class SchemaOwner : public virtual MetadataItem
 {
 private:
     Identifier schemaM;
 public:
-    MetadataItemSchema();
-    MetadataItemSchema(NodeType type, MetadataItemSchema* parent = 0,
-        const wxString& name = wxEmptyString,  const wxString& schema, 
+    SchemaOwner();
+    SchemaOwner(NodeType type, SchemaOwner* parent = 0,
+        const wxString& name = wxEmptyString,  const wxString& schema = wxEmptyString, 
         int id = -1);
-    virtual ~MetadataItemSchema();
+    virtual ~SchemaOwner();
 
 
     wxString getName_() const override;
@@ -253,7 +249,7 @@ public:
 
 
 
-class DependencyField : public MetadataItem
+class DependencyField : public virtual MetadataItem
 {
 private:
     std::vector<Dependency> objectsM_;
@@ -268,8 +264,17 @@ public:
 
 };
 
-//! masks the object it points to so others see it transparently
-class Dependency: public MetadataItem
+class DependencyFieldSchema : public DependencyField, 
+                              public SchemaOwner
+{
+public:
+    DependencyFieldSchema(const wxString& name, 
+            const wxString& schema = wxEmptyString, int position = 0);
+    Identifier getIdentifier() const override { return SchemaOwner::getIdentifier(); }
+
+};
+
+class Dependency: public virtual MetadataItem
 {
 private:
     MetadataItem *objectM;
@@ -295,6 +300,22 @@ public:
     bool operator!= (const Dependency& other) const;
     bool operator <(const Dependency& other) const; //For sorting
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
+};
+
+class DependencySchema : public Dependency, 
+                         public SchemaOwner
+{
+public:
+    DependencySchema(MetadataItem *object, MetadataItem *auxiliar = 0, 
+        const wxString& schema = wxEmptyString);
+
+    virtual MetadataItem *getParent() const override;
+    virtual wxString getName_() const override;
+    virtual wxString getQuotedName() const override;
+    virtual Identifier getIdentifier() const override;
+    virtual NodeType getType() const override;
+    virtual const wxString getTypeName() const override;
+    virtual void acceptVisitor(MetadataItemVisitor* visitor) override;
 };
 
 #endif //FR_METADATAITEM_H

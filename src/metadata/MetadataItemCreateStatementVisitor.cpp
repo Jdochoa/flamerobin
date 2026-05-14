@@ -396,7 +396,7 @@ void MetadataItemCreateStatementVisitor::visitCharacterSets(CharacterSets& /*cha
 
 void MetadataItemCreateStatementVisitor::visitCollations(Collations& collations)
 {
-    statementM = getCreateCollationStatment(collations.getSchemaName_());
+    //statementM = getCreateCollationStatment(collations.getSchemaName());
 
 }
 

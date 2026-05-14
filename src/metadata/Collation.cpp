@@ -263,7 +263,7 @@ wxString Collation::getSource()
 wxString Collation::getAlterSql()
 {
     return getDropSqlStatement() + "\n\n "
-        "CREATE COLLATION " + getSchemaName_() + getName_() + "\n" + getSource() + ";\n";
+        "CREATE COLLATION " +  getName_() + "\n" + getSource() + ";\n";
 }
 
 void SysCollations::loadChildren()
@@ -352,15 +352,6 @@ void Collations14::load(ProgressIndicator* progressIndicator)
     setItems(db->loadIdentifiers(stmt, progressIndicator));
 }
 
-wxString Collations14::getSchemaName_() const
-{
-    return getParent()->getName_() << ".";
-}
-
-wxString Collations14::getQuotedSchemaName() const
-{
-    return getParent()->getQuotedName() << ".";
-}
 
 std::string Collation14::getWhereLoadStmt()
 {
@@ -371,26 +362,16 @@ void Collation14::setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* conver
 {
     Collation::setParamsLoadStmt(statement, converter);
     
-    statement->Set(2, wx2std(getSchemaName_(), converter));
+    //statement->Set(2, wx2std(getSchemaName_(), converter));
 }
 
 Collation14::Collation14(MetadataItem* parent, const wxString& name, int id)
     :Collation(parent, name, id)
 {
-    setSchemaName_(getParent()->getName_());
+    //setSchemaName_(getParent()->getName_());
 }
 
 void Collation14::acceptVisitor(MetadataItemVisitor* visitor)
 {
     visitor->visitCollation(*this);
-}
-
-wxString Collation14::getSchemaName_() const
-{
-    return getParent()->getParent()->getName_() << ".";
-}
-
-wxString Collation14::getQuotedSchemaName() const
-{
-    return getParent()->getParent()->getQuotedName() << ".";
 }
