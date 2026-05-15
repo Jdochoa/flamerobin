@@ -83,13 +83,15 @@ public:
     wxString getAlterSql();
 };
 
-class Collation14 : public Collation
+class Collation14 : public Collation,
+                    public SchemaOwner
 {
 protected:
     std::string getWhereLoadStmt() override;
      void setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter) override;
 public:
-    Collation14(MetadataItem* parent, const wxString& name, int id = -1);
+    Collation14(SchemaOwner* parent, const wxString& schema,
+        const wxString& name, int id = -1);
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
 };
@@ -121,16 +123,14 @@ public:
     virtual const wxString getTypeName() const;
 };
 
-class Collations14 : public Collations
+class Collations14 : public Collations,
+                     public SchemaOwner
 {
-private:
-    wxString schemaNameM;
 public:
-    Collations14(MetadataItem* schema);
+    Collations14(SchemaOwner* schema);
 
     ItemType newItem(const wxString& name) override {
-        ItemType item(new Collation14(this, name));
-        //item->setSchemaName_(getSchemaName_());
+        ItemType item(new Collation14(this, getSchema(), name));
         return item;
     }
 

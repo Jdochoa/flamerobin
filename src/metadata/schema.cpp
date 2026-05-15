@@ -242,7 +242,8 @@ void Schema::acceptVisitor(MetadataItemVisitor* visitor)
 
 // Schemas collection
 Schemas::Schemas(DatabasePtr database)
-    : MetadataCollection<Schema>(ntSchemas, database, _("Schemas"))
+    : MetadataCollection<Schema>(ntSchemas, database, _("Schemas")),
+     SchemaOwner()
 {
 }
 

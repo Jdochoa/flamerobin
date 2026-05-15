@@ -331,8 +331,9 @@ const wxString Collations::getTypeName() const
     return  "COLLATION_COLLECTION";
 }
 
-Collations14::Collations14(MetadataItem* schema)
-    : Collations(schema)
+Collations14::Collations14(SchemaOwner* schema)
+    : Collations(schema),
+    SchemaOwner(ntCollations, schema, schema->getSchema(), _("Collations"))
 {
 }
 
@@ -347,7 +348,7 @@ void Collations14::load(ProgressIndicator* progressIndicator)
     wxString stmt(" Select RDB$COLLATION_NAME "
         " from RDB$COLLATIONS  "
         " where RDB$SYSTEM_FLAG = 0 "
-        "   and RDB$SCHEMA_NAME = '" + wx2std(getParent()->getName_(), db->getCharsetConverter()) + "' "
+        "   and RDB$SCHEMA_NAME = '" + wx2std(getSchema(), db->getCharsetConverter()) + "' "
         " Order By RDB$COLLATION_NAME ");
     setItems(db->loadIdentifiers(stmt, progressIndicator));
 }
@@ -362,13 +363,16 @@ void Collation14::setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* conver
 {
     Collation::setParamsLoadStmt(statement, converter);
     
-    //statement->Set(2, wx2std(getSchemaName_(), converter));
+    statement->Set(2, wx2std(getSchema(), converter));
 }
 
-Collation14::Collation14(MetadataItem* parent, const wxString& name, int id)
-    :Collation(parent, name, id)
+Collation14::Collation14(SchemaOwner* parent, const wxString& schema,
+        const wxString& name, int id)
+    ://MetadataItem(ntCollation, parent, name, id),
+     Collation(parent, name, id), 
+     SchemaOwner(ntCollation, parent, name, schema, id)
 {
-    //setSchemaName_(getParent()->getName_());
+    
 }
 
 void Collation14::acceptVisitor(MetadataItemVisitor* visitor)
