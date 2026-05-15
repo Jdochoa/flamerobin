@@ -41,8 +41,8 @@ public:
 };
 
 class PrintableHtmlWindow:
-    public wxWebView
-    // public wxHtmlWindow
+    //public wxWebView
+     public wxHtmlWindow
 {
 private:
     wxString pageSourceM;
@@ -51,7 +51,9 @@ public:
     PrintableHtmlWindow(wxWindow* parent, wxWindowID id = wxID_ANY);
     void setPageSource(const wxString& html);
 protected:
-    void OnLinkClicked(wxWebViewEvent& event);
+    //void OnLinkClicked(wxWebViewEvent& event);
+    virtual void OnLinkClicked(const wxHtmlLinkInfo& link);
+
 
     void OnRightUp(wxMouseEvent& event);
     void OnMenuCopy(wxCommandEvent& event);

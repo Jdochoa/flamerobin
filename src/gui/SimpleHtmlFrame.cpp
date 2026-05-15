@@ -61,12 +61,12 @@ bool showHtmlFile(wxWindow* parent, const wxFileName& fileName)
 SimpleHtmlFrame::SimpleHtmlFrame(wxWindow* parent, const wxFileName& fileName)
     : BaseFrame(parent, -1, wxEmptyString)
 {
-    //html_window = new PrintableHtmlWindow(this);
-    html_window = static_cast<PrintableHtmlWindow*>(wxWebView::New(parent,wxID_ANY));
+    html_window = new PrintableHtmlWindow(this);
+    //html_window = static_cast<PrintableHtmlWindow*>(wxWebView::New(parent,wxID_ANY));
 
     CreateStatusBar();
-    //html_window->SetRelatedFrame(this, "%s");
-    //html_window->SetRelatedStatusBar(0);
+    html_window->SetRelatedFrame(this, "%s");
+    html_window->SetRelatedStatusBar(0);
 
     // we don't use LoadPage here since we need PrintableHtmlWindow to
     // store a copy of HTML source for printing and SaveAsFile actions
