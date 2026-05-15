@@ -228,6 +228,7 @@ public:
     SchemaOwner(NodeType type, SchemaOwner* parent = 0,
         const wxString& name = wxEmptyString,  const wxString& schema = wxEmptyString, 
         int id = -1);
+
     virtual ~SchemaOwner();
 
 

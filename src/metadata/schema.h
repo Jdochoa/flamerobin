@@ -35,7 +35,7 @@
 
 class ProgressIndicator;
 
-class Schema : public MetadataItem,
+class Schema : public SchemaOwner,
     public std::enable_shared_from_this<Schema>
 {
 private:
@@ -81,7 +81,8 @@ public:
 };
 
 
-class Schemas : public MetadataCollection<Schema>
+class Schemas : public MetadataCollection<Schema>,
+                public SchemaOwner
 {
 protected:
     virtual void loadChildren();
