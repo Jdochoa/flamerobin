@@ -37,7 +37,7 @@
 
 class SysCollations;
 
-class Collation : public MetadataItem
+class Collation : public virtual MetadataItem
 {
 private:
     int characterSetIdM;
@@ -136,6 +136,7 @@ public:
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
+    
 };
 
 #endif // FR_COLLATION_H

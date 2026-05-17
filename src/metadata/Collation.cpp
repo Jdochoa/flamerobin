@@ -302,12 +302,14 @@ void Collations::loadChildren()
 }
 
 Collations::Collations(DatabasePtr database)
-    : MetadataCollection<Collation>(ntCollations, database, _("Collations"))
+    :MetadataItem(ntCollations, database.get(), _("Collations"), -1),
+     MetadataCollection<Collation>(ntCollations, database, _("Collations"))
 {
 }
 
 Collations::Collations(MetadataItem* parent)
-    : MetadataCollection<Collation>(ntCollations, parent, _("Collations"))
+    :MetadataItem(ntCollations, parent, _("Collations"), -1),
+     MetadataCollection<Collation>(ntCollations, parent, _("Collations"))
 {
 }
 

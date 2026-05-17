@@ -61,6 +61,7 @@
 
 Schema::Schema(MetadataItem* parent, const wxString& name)
     : MetadataItem(ntSchema, parent, name),
+    //: SchemaOwner(ntSchema, parent, wxEmptyString, name,  -1),
     characterSetNameM(wxEmptyString), characterSetSchemaNameM(wxEmptyString)
 {
     metadataContainerM = std::make_shared<MetadataContainer_14_0>();
@@ -254,10 +255,10 @@ void Schemas::acceptVisitor(MetadataItemVisitor* visitor)
 
 void Schemas::load(ProgressIndicator* progressIndicator)
 {
-    DatabasePtr db = getDatabase();
+    //DatabasePtr db = getDatabase();
     wxString stmt = "select rdb$schema_name from rdb$schemas ";
     stmt << " order by rdb$schema_name ";
-    setItems(db->loadIdentifiers(stmt, progressIndicator));
+    //setItems(db->loadIdentifiers(stmt, progressIndicator));
 }
 
 void Schemas::loadChildren()

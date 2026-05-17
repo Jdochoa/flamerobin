@@ -856,7 +856,7 @@ SchemaOwner::SchemaOwner()
 }
 
 SchemaOwner::SchemaOwner(NodeType type, SchemaOwner* parent,
-    const wxString& name, const wxString& schema, int id)
+    const wxString& schema, const wxString& name, int id)
     : MetadataItem(type, parent, name, id),
     schemaM(schema, getDatabase() != nullptr ? getDatabase()->getSqlDialect() : 3)
 {

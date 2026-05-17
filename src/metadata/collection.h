@@ -115,6 +115,7 @@ public:
 
         return b;
     }
+
 };
 
 class MetadataCollectionBaseSchema : public MetadataCollectionBase,
@@ -123,14 +124,16 @@ class MetadataCollectionBaseSchema : public MetadataCollectionBase,
 protected:
     MetadataCollectionBaseSchema(NodeType type, DatabasePtr database,
         const wxString& name, const wxString& schema = wxEmptyString)
-        : MetadataCollectionBase(type, database, name),
+        : MetadataItem(type, database.get(), name, -1),
+          MetadataCollectionBase(type, database, name),
           SchemaOwner(type, /*parent*/ nullptr, name, schema, -1)
     {
     }
 
     MetadataCollectionBaseSchema(NodeType type, MetadataItem* parent,
         const wxString& name, const wxString& schema = wxEmptyString)
-        : MetadataCollectionBase(type, parent, name),
+        : MetadataItem(type, parent, name, -1),
+          MetadataCollectionBase(type, parent, name),
           SchemaOwner(type, dynamic_cast<SchemaOwner*>(parent), name, schema, -1)
     {
     }

@@ -92,5 +92,6 @@ public:
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
     virtual const wxString getTypeName() const;
+    virtual wxString getName_() const override { return SchemaOwner::getName_(); }
 };
 #endif // FR_SCHEMA_H
