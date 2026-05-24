@@ -27,14 +27,16 @@
 #define FR_CHARACTERSET_H
 
 #include <vector>
+#include "metadata/MetadataClasses.h"
 #include "metadata/collection.h"
 #include "metadata/Collation.h"
 #include "metadata/privilege.h"
+#include "metadata/metadataitem.h"
 
 class CharacterSets;
 class SysCharacterSets;
 
-class CharacterSet: public MetadataItem
+class CharacterSet: public  MetadataItem
 {
 private:
     int bytesPerCharM;

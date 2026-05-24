@@ -272,7 +272,8 @@ void SysCollations::loadChildren()
 }
 
 SysCollations::SysCollations(DatabasePtr database)
-    : MetadataCollection<Collation>(ntCollations, database, _("SysCollation"))
+    :MetadataItem(ntCollations, database.get(), _("SysCollation"), -1),
+     MetadataCollection<Collation>(ntCollations, database, _("SysCollation"))
 {
 }
 
@@ -334,8 +335,12 @@ const wxString Collations::getTypeName() const
 }
 
 Collations14::Collations14(SchemaOwner* schema)
-    : Collations(schema),
-    SchemaOwner(ntCollations, schema, schema->getSchema(), _("Collations"))
+    :MetadataItem(ntCollations, schema, _("Collations"), -1),
+    SchemaOwner(ntCollations, schema, "", _("Collations")),
+     Collations(schema)
+    
+    //MetadataCollection<Collation>(ntCollations, schema, _("Collations")),
+    //SchemaOwner(ntCollations, schema, "", _("Collations"))
 {
 }
 
@@ -346,7 +351,7 @@ void Collations14::acceptVisitor(MetadataItemVisitor* visitor)
 
 void Collations14::load(ProgressIndicator* progressIndicator)
 {
-    DatabasePtr db = getDatabase();
+    DatabasePtr db = SchemaOwner::getDatabase();
     wxString stmt(" Select RDB$COLLATION_NAME "
         " from RDB$COLLATIONS  "
         " where RDB$SYSTEM_FLAG = 0 "
@@ -370,7 +375,7 @@ void Collation14::setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* conver
 
 Collation14::Collation14(SchemaOwner* parent, const wxString& schema,
         const wxString& name, int id)
-    ://MetadataItem(ntCollation, parent, name, id),
+    :MetadataItem(ntCollation, parent, name, id),
      Collation(parent, name, id), 
      SchemaOwner(ntCollation, parent, name, schema, id)
 {

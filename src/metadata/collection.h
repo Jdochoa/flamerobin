@@ -31,6 +31,7 @@
 
 #include "config/DatabaseConfig.h"
 #include "core/ProgressIndicator.h"
+//#include "core/StringUtils.h"
 #include "metadata/database.h"
 #include "metadata/metadataitem.h"
 
@@ -84,8 +85,7 @@ public:
     }
 
     virtual bool isSystem() const { return false; }
-
-    virtual void load(ProgressIndicator*)
+    virtual void load(ProgressIndicator* pi) 
     {
     }
 
@@ -178,6 +178,20 @@ private:
 
     }
 
+//TODO: this function is implemented in StringUtils.h, but we want to avoid including it here, as it includes wx / string.h, which is a very heavy header.So we re - implement the function here.
+    wxString std2wxIdentifier_(const std::string& input, wxMBConv* conv)
+    {
+        if (input.empty())
+            return wxEmptyString;
+        if (!conv)
+            conv = wxConvCurrent;
+        // trim trailing whitespace
+        size_t last = input.find_last_not_of(" ");
+        return wxString(input.c_str(), *conv,
+            (last == std::string::npos) ? std::string::npos : last + 1);
+    }
+
+
 protected:
     MetadataCollection<T>(NodeType type, DatabasePtr database,
             const wxString& name)
@@ -190,6 +204,24 @@ protected:
         : MetadataCollectionBase(type, parent, name)
     {
 
+    }
+
+    void setProperties(IBPP::Statement& stmt, wxMBConv* conv) override
+    {
+        while (stmt->Fetch())
+        {
+            wxString name;
+            if (stmt->IsNull(1))
+                name = wxEmptyString;
+            else
+            {
+                std::string str;
+                stmt->Get(1, str);
+                name = std2wxIdentifier_(str, conv);
+            }
+            insert(name);
+        }
+        setChildrenLoaded(true);
     }
 
 public:

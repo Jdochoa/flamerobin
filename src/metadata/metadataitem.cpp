@@ -269,8 +269,9 @@ void MetadataItem::loadProperties()
     setParamsLoadStmt(st1, converter);
 
     st1->Execute();
-    if (!st1->Fetch())
-        throw FRError(_("Exception not found: ") + getName_());
+    //if (!st1->Fetch())
+    //    throw FRError(_("Exception not found: ") + getName_());
+  
 
     setProperties(st1, converter);
 
@@ -777,7 +778,11 @@ std::string MetadataItem::getWhereLoadStmt()
 
 std::string MetadataItem::getLoadStatement()
 {
-    return getColumnsLoadStmt() + " " + getFromLoadStmt() + " " + getWhereLoadStmt();
+    return "select "+
+        getColumnsLoadStmt() +
+        " from " +
+        getFromLoadStmt() +
+        (getWhereLoadStmt().empty() ? ";" : " Where " + getWhereLoadStmt() + ";");
 }
 
 void MetadataItem::setParamsLoadStmt(IBPP::Statement& /*statement*/, wxMBConv* /*converter*/)
@@ -910,22 +915,22 @@ Identifier SchemaOwner::getSchemaIdentifier() const
 
 wxString SchemaOwner::getObjectName() const
 {
-    return getName_();
+    return MetadataItem::getName_();
 }
 
 wxString SchemaOwner::getQuotedObjectName() const
 {
-    return getQuotedName();
+    return MetadataItem::getQuotedName();
 }
 
 void SchemaOwner::setObjectName(const wxString& name)
 {
-    setName_(name);
+    MetadataItem::setName_(name);
 }
 
 Identifier SchemaOwner::getObjectIdentifier() const
 {
-    return getIdentifier();
+    return MetadataItem::getIdentifier();
 }
 
 bool MetadataItem::isSystem() const

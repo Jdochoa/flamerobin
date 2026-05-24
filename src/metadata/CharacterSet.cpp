@@ -260,7 +260,8 @@ void CharacterSets::loadChildren()
 }
 
 CharacterSets::CharacterSets(DatabasePtr database)
-    : MetadataCollection<CharacterSet>(ntCharacterSets, database, _("CharacterSets"))
+    :MetadataItem(ntCharacterSets, database.get(), _("CharacterSets"), -1),
+     MetadataCollection<CharacterSet>(ntCharacterSets, database, _("CharacterSets"))
 
 {
 }
@@ -339,7 +340,8 @@ void SysCharacterSets::loadChildren()
 }
 
 SysCharacterSets::SysCharacterSets(DatabasePtr database)
-    : MetadataCollection<CharacterSet>(ntSysCharacterSets, database, _("System CharacterSets"))
+    :MetadataItem(ntSysCharacterSets, database.get(), _("System CharacterSets"), -1),
+     MetadataCollection<CharacterSet>(ntSysCharacterSets, database, _("System CharacterSets"))
 
 {
 }

@@ -60,8 +60,8 @@
 #include "metadata/view.h"
 
 Schema::Schema(MetadataItem* parent, const wxString& name)
-    : MetadataItem(ntSchema, parent, name),
-    //: SchemaOwner(ntSchema, parent, wxEmptyString, name,  -1),
+    : //SchemaOwner(ntSchema, parent, wxEmptyString, name, -1),
+    MetadataItem(ntSchema, parent,  name, -1),
     characterSetNameM(wxEmptyString), characterSetSchemaNameM(wxEmptyString)
 {
     metadataContainerM = std::make_shared<MetadataContainer_14_0>();
@@ -102,7 +102,8 @@ Schema::Schema(MetadataItem* parent, const wxString& name)
 }
 
 Schema::Schema(DatabasePtr database, const wxString& name)
-    : Schema(database.get(), name)
+    //:Schema(dynamic_cast<SchemaOwner*>(database.get()), name)
+    :Schema(database.get(), name)
 {
 }
 
@@ -166,7 +167,63 @@ MetadataContainerPtr Schema::getMetadataContainer()
     return metadataContainerM;
 }
 
-void Schema::loadProperties()
+std::string Schema::getColumnsLoadStmt()
+{
+    return std::string("rdb$schema_name, "
+        "rdb$character_set_name, "
+        "rdb$character_set_schema_name, "
+        "rdb$sql_security, "
+        "rdb$system_flag, "
+        "rdb$description ");
+}
+
+std::string Schema::getFromLoadStmt()
+{
+    return std::string(" rdb$schemas ");
+}
+
+std::string Schema::getWhereLoadStmt()
+{
+    return std::string(" rdb$schema_name = ? ");
+}
+
+void Schema::setParamsLoadStmt(IBPP::Statement& stmt, wxMBConv* conv) 
+{
+    stmt->Set(1, wx2std(getName_(), conv));
+}
+
+void Schema::setProperties(IBPP::Statement& stmt, wxMBConv* conv)
+{
+    if (stmt->Fetch())
+    {
+        std::string lstr;
+        bool lbool;
+        if (stmt->IsNull(2))
+            lstr = "";
+        else
+            stmt->Get(2, lstr);
+        setCharacterSetName(std2wxIdentifier(lstr, conv));
+        if (stmt->IsNull(3))
+            lstr = "";
+        else
+            stmt->Get(3, lstr);
+        setCharacterSetSchemaName(std2wxIdentifier(lstr, conv));
+        if (stmt->IsNull(5))
+            lbool = false;
+        else
+            stmt->Get(5, lbool);
+        setIsSystem(lbool);
+    }
+    else
+        throw FRError(_("User not found: ") + getName_());
+
+    setPropertiesLoaded(true);
+    notifyObservers();
+
+}
+
+
+/*void Schema::loadProperties()
 {
     DatabasePtr db = getDatabase();
 
@@ -212,7 +269,7 @@ void Schema::loadProperties()
     setIsSystem(lbool);
     setPropertiesLoaded(true);
     notifyObservers();
-}
+}*/
 
 void Schema::loadChildren()
 {
@@ -243,8 +300,8 @@ void Schema::acceptVisitor(MetadataItemVisitor* visitor)
 
 // Schemas collection
 Schemas::Schemas(DatabasePtr database)
-    : MetadataCollection<Schema>(ntSchemas, database, _("Schemas")),
-     SchemaOwner()
+    : MetadataItem(ntSchemas, database.get(), _("Schemas"), -1),
+     MetadataCollection<Schema>(ntSchemas, database, _("Schemas"))
 {
 }
 
@@ -253,17 +310,19 @@ void Schemas::acceptVisitor(MetadataItemVisitor* visitor)
     visitor->visitSchemas(*this);
 }
 
-void Schemas::load(ProgressIndicator* progressIndicator)
-{
-    //DatabasePtr db = getDatabase();
-    wxString stmt = "select rdb$schema_name from rdb$schemas ";
-    stmt << " order by rdb$schema_name ";
-    //setItems(db->loadIdentifiers(stmt, progressIndicator));
-}
-
 void Schemas::loadChildren()
 {
     load(0);
+}
+
+std::string Schemas::getColumnsLoadStmt()
+{
+    return " rdb$schema_name ";
+}
+
+std::string Schemas::getFromLoadStmt()
+{
+    return " rdb$schemas ";
 }
 
 const wxString Schemas::getTypeName() const

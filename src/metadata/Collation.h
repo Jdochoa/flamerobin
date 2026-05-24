@@ -134,6 +134,8 @@ public:
         return item;
     }
 
+    DatabasePtr getDatabase() const override { return MetadataCollectionBase::getDatabase(); }
+
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
     void load(ProgressIndicator* progressIndicator);
     

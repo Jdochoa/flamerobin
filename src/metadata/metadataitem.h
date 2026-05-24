@@ -126,9 +126,10 @@ protected:
     virtual std::string getFromLoadStmt();
     virtual std::string getWhereLoadStmt();
     virtual std::string getLoadStatement();
-    virtual void setParamsLoadStmt(IBPP::Statement& statement, wxMBConv* converter);
-    virtual void setProperties(IBPP::Statement& statement, wxMBConv* converter);
+    virtual void setParamsLoadStmt(IBPP::Statement& stmt, wxMBConv* conv);
+    virtual void setProperties(IBPP::Statement& stmt, wxMBConv* conv);
     virtual void loadProperties();
+
     void setPropertiesLoaded(bool loaded);
 
     virtual void doSetChildrenLoaded(bool loaded);

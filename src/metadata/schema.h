@@ -45,7 +45,13 @@ private:
 
 
 protected:
-    virtual void loadProperties();
+    std::string getColumnsLoadStmt() override;
+    std::string getFromLoadStmt() override;
+    std::string getWhereLoadStmt() override;
+    void setParamsLoadStmt(IBPP::Statement& stmt, wxMBConv* conv) override;
+    void setProperties(IBPP::Statement& stmt, wxMBConv* conv) override;
+
+    //virtual void loadProperties();
 
     virtual void loadChildren();
     virtual void lockChildren();
@@ -81,17 +87,20 @@ public:
 };
 
 
-class Schemas : public MetadataCollection<Schema>,
-                public SchemaOwner
+class Schemas : public MetadataCollection<Schema>
+                //,public SchemaOwner
 {
 protected:
     virtual void loadChildren();
+
+    std::string getColumnsLoadStmt() override;
+    std::string getFromLoadStmt() override;
+
 public:
     Schemas(DatabasePtr database);
 
     virtual void acceptVisitor(MetadataItemVisitor* visitor);
-    void load(ProgressIndicator* progressIndicator);
+    void load(ProgressIndicator* progressIndicator) { loadProperties(); };
     virtual const wxString getTypeName() const;
-    virtual wxString getName_() const override { return SchemaOwner::getName_(); }
 };
 #endif // FR_SCHEMA_H
